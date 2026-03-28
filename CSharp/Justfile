@@ -1,0 +1,33 @@
+#!/usr/bin/env just --justfile
+
+default:
+  @just --choose
+
+# Build all SDK projects with dotnet
+build:
+    dotnet build Utils.sln
+
+# Build all SDK projects in Release mode
+build-release:
+    dotnet build Utils.sln -c Release
+
+# Build all projects (including .NET Framework) with MSBuild
+build-all:
+    msbuild Utils-legacy.sln -p:Configuration=Release
+
+# Build a specific project
+build-project PROJECT:
+    dotnet build {{PROJECT}}
+
+# Run tests
+test:
+    dotnet test
+
+# Clean build artifacts
+clean:
+    dotnet clean Utils.sln
+    msbuild Utils-legacy.sln -t:Clean -p:Configuration=Release
+
+# Restore NuGet packages
+restore:
+    dotnet restore Utils.sln
