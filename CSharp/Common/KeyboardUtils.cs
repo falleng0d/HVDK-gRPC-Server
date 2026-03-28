@@ -1,11 +1,12 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 
 namespace KeyboardUtils
 {
-    class KbUtils
+    internal class KbUtils
     {
 
         [DllImport("user32.dll")]
@@ -15,10 +16,10 @@ namespace KeyboardUtils
         private static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
 
         [DllImport("user32.dll", SetLastError = true)]
-        static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+        private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
 
         [DllImport("user32.dll")]
-        static extern bool SetForegroundWindow(IntPtr hWnd);
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
 
         protected List<string> FKeys = new List<string>();
         protected List<string> FModifiers = new List<string>();
@@ -29,24 +30,24 @@ namespace KeyboardUtils
             AddKeyKeyCodes();
         }
 
-        public Boolean AppActivate(string Name, int PauseAfterActivation)
+        public Boolean AppActivate(string name, int pauseAfterActivation)
         {
-            if (Name != "")
+            if (name != "")
             {   //is it already the foreground window?
-                IntPtr selectedWindow = GetForegroundWindow();
-                StringBuilder WinCaptionEx = new StringBuilder(260);
-                GetWindowText(selectedWindow, WinCaptionEx, WinCaptionEx.Capacity);
-                if (WinCaptionEx.ToString() == Name)
+                var selectedWindow = GetForegroundWindow();
+                var winCaptionEx = new StringBuilder(260);
+                GetWindowText(selectedWindow, winCaptionEx, winCaptionEx.Capacity);
+                if (winCaptionEx.ToString() == name)
                 {
                     return true;
                 }
                 else
                 {
-                    IntPtr w = FindWindow(null, Name);
+                    var w = FindWindow(null, name);
                     if (w != IntPtr.Zero)
                     {
                         SetForegroundWindow(w);
-                        System.Threading.Thread.Sleep(PauseAfterActivation);
+                        Thread.Sleep(pauseAfterActivation);
                         return true;
                     }
                 }
@@ -60,7 +61,7 @@ namespace KeyboardUtils
 
         public Byte GetModifierKeyCode(string modifier)
         {
-            int i = FModifiers.IndexOf(modifier);
+            var i = FModifiers.IndexOf(modifier);
             if (i == -1) { return 0; } else { return (byte)i; };
         }
 
@@ -79,7 +80,7 @@ namespace KeyboardUtils
 
         public Byte GetKeyKeyCode(string key)
         {
-            int i = FKeys.IndexOf(key);
+            var i = FKeys.IndexOf(key);
             if (i == -1) { return 0; } else { return (byte)i; };
         }
 

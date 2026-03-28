@@ -1,16 +1,18 @@
-﻿using System;
+﻿// ReSharper disable UnusedType.Global
+
+using System;
 using System.Runtime.InteropServices;
 
 namespace Drivers
 {
     public enum DriversConst : ushort
     {
-        TTC_VENDORID = 0xF00F,
-        TTC_PRODUCTID_JOYSTICK = 0x00000001,
-        TTC_PRODUCTID_MOUSEABS = 0x00000002,
-        TTC_PRODUCTID_KEYBOARD = 0x00000003,
-        TTC_PRODUCTID_GAMEPAD = 0x00000004,
-        TTC_PRODUCTID_MOUSEREL = 0x00000005,
+        TtcVendorid = 0xF00F,
+        TtcProductidJoystick = 0x00000001,
+        TtcProductidMouseabs = 0x00000002,
+        TtcProductidKeyboard = 0x00000003,
+        TtcProductidGamepad = 0x00000004,
+        TtcProductidMouserel = 0x00000005,
     }
 
     //KEYBOARD ------------------------------------------------------------------------------------------------------------
@@ -119,4 +121,3 @@ namespace Drivers
     }
 
 }
-

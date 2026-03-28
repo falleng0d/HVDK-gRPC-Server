@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Windows.Forms;
 using System.Runtime.InteropServices;
-using HIDCtrl;
+using System.Windows.Forms;
 using Drivers;
+using HIDCtrl;
 
 namespace App
 {
@@ -11,7 +11,7 @@ namespace App
     public partial class Form1 : Form
     {
 
-        private HIDController HID = new HIDController();
+        private HidController _hid = new HidController();
 
         public Form1()
         {
@@ -22,15 +22,15 @@ namespace App
         {
             tbLog.AppendText("\r\n");
             //create the HIDController 
-            HID.OnLog += new EventHandler<LogArgs>(Log);
-            HID.VendorID = (ushort)DriversConst.TTC_VENDORID;                //the Tetherscript vendorid
-            HID.ProductID = (ushort)DriversConst.TTC_PRODUCTID_MOUSEABS;     //the Tetherscript Virtual Mouse Absolute Driver productid
-            HID.Connect();
+            _hid.OnLog += new EventHandler<LogArgs>(Log);
+            _hid.VendorId = (ushort)DriversConst.TtcVendorid;                //the Tetherscript vendorid
+            _hid.ProductId = (ushort)DriversConst.TtcProductidMouseabs;     //the Tetherscript Virtual Mouse Absolute Driver productid
+            _hid.Connect();
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            HID.Disconnect();
+            _hid.Disconnect();
         }
 
         public void Log(object s, LogArgs e)
@@ -46,29 +46,29 @@ namespace App
         }
 
         //here we send data to the mouse
-        void Send_Data_To_MouseAbs()
+        private void Send_Data_To_MouseAbs()
         {
-            SetFeatureMouseAbs MouseAbsData = new SetFeatureMouseAbs();
-            MouseAbsData.ReportID = 1;
-            MouseAbsData.CommandCode = 2;
+            var mouseAbsData = new SetFeatureMouseAbs();
+            mouseAbsData.ReportID = 1;
+            mouseAbsData.CommandCode = 2;
             byte btns = 0;
             if (cbLeft.Checked) { btns = 1; };
             if (cbRight.Checked) { btns = (byte)(btns | (1 << 1)); }
             if (cbLeft.Checked) { btns = (byte)(btns | (1 << 2)); }
-            MouseAbsData.Buttons = btns;  //button states are represented by the 3 least significant bits
-            MouseAbsData.X = (UInt16)spnX.Value;
-            MouseAbsData.Y = (UInt16)spnY.Value;
+            mouseAbsData.Buttons = btns;  //button states are represented by the 3 least significant bits
+            mouseAbsData.X = (UInt16)spnX.Value;
+            mouseAbsData.Y = (UInt16)spnY.Value;
             //convert struct to buffer
-            byte[] buf = getBytesSFJ(MouseAbsData, Marshal.SizeOf(MouseAbsData));
+            var buf = GetBytesSfj(mouseAbsData, Marshal.SizeOf(mouseAbsData));
             //send filled buffer to driver
-            HID.SendData(buf, (uint)Marshal.SizeOf(MouseAbsData));
+            _hid.SendData(buf, (uint)Marshal.SizeOf(mouseAbsData));
         }
 
         //for converting a struct to byte array
-        public byte[] getBytesSFJ(SetFeatureMouseAbs sfj, int size)
+        public byte[] GetBytesSfj(SetFeatureMouseAbs sfj, int size)
         {
-            byte[] arr = new byte[size];
-            IntPtr ptr = Marshal.AllocHGlobal(size);
+            var arr = new byte[size];
+            var ptr = Marshal.AllocHGlobal(size);
             Marshal.StructureToPtr(sfj, ptr, false);
             Marshal.Copy(ptr, arr, 0, size);
             Marshal.FreeHGlobal(ptr);
