@@ -10,7 +10,6 @@ using System.Runtime.CompilerServices;
 
 namespace HIDCtrl
 {
-
     public class LogArgs : EventArgs
     {
         public string Msg;
@@ -18,7 +17,6 @@ namespace HIDCtrl
 
     class HIDController
     {
-
         public event EventHandler<LogArgs> OnLog;
 
         public Guid HIDGuid;
@@ -30,7 +28,6 @@ namespace HIDCtrl
 
         public HIDController()
         {
-
         }
 
         public Boolean Connected
@@ -43,14 +40,12 @@ namespace HIDCtrl
         {
             get { return FProductID; }
             set { FProductID = value; }
-
         }
 
         public ushort VendorID
         {
             get { return FVendorID; }
             set { FVendorID = value; }
-
         }
 
         public enum DiGetClassFlags : uint
@@ -60,6 +55,13 @@ namespace HIDCtrl
         }
 
         public const uint FILE_FLAG_OVERLAPPED = 0x40000000;
+        private const uint GENERIC_READ = 0x80000000;
+        private const uint GENERIC_WRITE = 0x40000000;
+        private const uint FILE_SHARE_READ = 0x00000001;
+        private const uint FILE_SHARE_WRITE = 0x00000002;
+        private const uint OPEN_EXISTING = 3;
+        private const int ERROR_INSUFFICIENT_BUFFER = 122;
+        private const int ERROR_NO_MORE_ITEMS = 259;
 
         IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
 
@@ -101,17 +103,21 @@ namespace HIDCtrl
         [DllImport("SetupApi.dll", CharSet = CharSet.Auto)]
         static extern IntPtr SetupDiGetClassDevs(ref Guid ClassGuid, IntPtr Enumerator, IntPtr hwndParent, int Flags);
 
-        [DllImport("Setupapi.dll", CharSet = CharSet.Auto)]
-        public static extern Boolean SetupDiEnumDeviceInterfaces(IntPtr hDevInfo, IntPtr devInfo, ref Guid interfaceClassGuid, uint memberIndex, ref SP_DEVICE_INTERFACE_DATA deviceInterfaceData);
+        [DllImport("Setupapi.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern Boolean SetupDiEnumDeviceInterfaces(IntPtr hDevInfo, IntPtr devInfo,
+            ref Guid interfaceClassGuid, uint memberIndex, ref SP_DEVICE_INTERFACE_DATA deviceInterfaceData);
 
         [DllImport(@"setupapi.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern Boolean SetupDiGetDeviceInterfaceDetail(
             IntPtr hDevInfo,
-            SP_DEVICE_INTERFACE_DATA deviceInterfaceData,
+            ref SP_DEVICE_INTERFACE_DATA deviceInterfaceData,
             IntPtr deviceInterfaceDetailData,
             uint deviceInterfaceDetailDataSize,
             out uint requiredSize,
-            SP_DEVINFO_DATA deviceInfoData);
+            IntPtr deviceInfoData);
+
+        [DllImport("Setupapi.dll", SetLastError = true)]
+        static extern bool SetupDiDestroyDeviceInfoList(IntPtr hDevInfo);
 
         [DllImport("HID.dll", CharSet = CharSet.Auto)]
         static extern void HidD_GetHidGuid(out Guid ClassGuid);
@@ -131,12 +137,10 @@ namespace HIDCtrl
         [DllImport("Kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         static extern SafeFileHandle CreateFile(
             string fileName,
-            [MarshalAs(UnmanagedType.U4)] FileAccess fileAccess,
-            //UInt32 fileAccess,
-            [MarshalAs(UnmanagedType.U4)] FileShare fileShare,
+            uint desiredAccess,
+            uint fileShare,
             IntPtr securityAttributes,
-            [MarshalAs(UnmanagedType.U4)] FileMode creationDisposition,
-            //[MarshalAs(UnmanagedType.U4)] FileAttributes flagsAndAttributes,
+            uint creationDisposition,
             uint flagsAndAttributes,
             IntPtr template);
 
@@ -162,6 +166,53 @@ namespace HIDCtrl
             }
         }
 
+        private static bool TryGetDevicePath(IntPtr pnpHandle, ref SP_DEVICE_INTERFACE_DATA devInterfaceData,
+            out string devicePath)
+        {
+            devicePath = null;
+
+            uint needed;
+            bool result = SetupDiGetDeviceInterfaceDetail(pnpHandle, ref devInterfaceData, IntPtr.Zero, 0, out needed,
+                IntPtr.Zero);
+            int error = Marshal.GetLastWin32Error();
+            if (!result && error != ERROR_INSUFFICIENT_BUFFER)
+            {
+                return false;
+            }
+
+            IntPtr detailData = Marshal.AllocHGlobal((int)needed);
+            try
+            {
+                Marshal.WriteInt32(detailData, IntPtr.Size == 8 ? 8 : 6);
+                if (!SetupDiGetDeviceInterfaceDetail(pnpHandle, ref devInterfaceData, detailData, needed, out needed,
+                        IntPtr.Zero))
+                {
+                    return false;
+                }
+
+                IntPtr pathPtr = IntPtr.Add(detailData, 4);
+                devicePath = Marshal.PtrToStringAuto(pathPtr);
+                return !string.IsNullOrEmpty(devicePath);
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(detailData);
+            }
+        }
+
+        private static SafeFileHandle OpenDeviceHandle(string devicePath)
+        {
+            SafeFileHandle handle = CreateFile(devicePath, GENERIC_READ | GENERIC_WRITE,
+                FILE_SHARE_READ | FILE_SHARE_WRITE, IntPtr.Zero, OPEN_EXISTING, 0, IntPtr.Zero);
+            if (!handle.IsInvalid)
+            {
+                return handle;
+            }
+
+            return CreateFile(devicePath, 0, FILE_SHARE_READ | FILE_SHARE_WRITE, IntPtr.Zero, OPEN_EXISTING, 0,
+                IntPtr.Zero);
+        }
+
         //connect to the driver.  We'll iterate through all present HID devices and find the one that matches our target VENDORID and PRODUCTID
         public void Connect()
         {
@@ -174,85 +225,62 @@ namespace HIDCtrl
 
             HidD_GetHidGuid(out HIDGuid);
 
-            IntPtr PnPHandle = SetupDiGetClassDevs(ref HIDGuid, IntPtr.Zero, IntPtr.Zero, (int)(DiGetClassFlags.DIGCF_PRESENT | DiGetClassFlags.DIGCF_DEVICEINTERFACE));
+            IntPtr PnPHandle = SetupDiGetClassDevs(ref HIDGuid, IntPtr.Zero, IntPtr.Zero,
+                (int)(DiGetClassFlags.DIGCF_PRESENT | DiGetClassFlags.DIGCF_DEVICEINTERFACE));
             if (PnPHandle == (IntPtr)INVALID_HANDLE_VALUE)
             {
                 DoLog("Connect: SetupDiGetClassDevs failed.");
                 return;
             }
 
-            //we coudld use a lot more failure and exception logging during this loop
-            Boolean bFoundADevice = false;
-            Boolean bFoundMyDevice = false;
-            uint i = 0;
-            do
+            try
             {
-                SP_DEVICE_INTERFACE_DATA DevInterfaceData = new SP_DEVICE_INTERFACE_DATA();
-                DevInterfaceData.cbSize = (uint)Marshal.SizeOf(DevInterfaceData);
-                bFoundADevice = SetupDiEnumDeviceInterfaces(PnPHandle, IntPtr.Zero, ref HIDGuid, i, ref DevInterfaceData);
-                if (bFoundADevice)
+                for (uint i = 0;; i++)
                 {
-                    SP_DEVINFO_DATA DevInfoData = new SP_DEVINFO_DATA();
-                    DevInfoData.cbSize = (uint)Marshal.SizeOf(DevInfoData);
-                    uint needed;
-                    bool result3 = SetupDiGetDeviceInterfaceDetail(PnPHandle, DevInterfaceData, IntPtr.Zero, 0, out needed, DevInfoData);
-                    if (!result3)
+                    SP_DEVICE_INTERFACE_DATA DevInterfaceData = new SP_DEVICE_INTERFACE_DATA();
+                    DevInterfaceData.cbSize = (uint)Marshal.SizeOf(DevInterfaceData);
+                    if (!SetupDiEnumDeviceInterfaces(PnPHandle, IntPtr.Zero, ref HIDGuid, i, ref DevInterfaceData))
                     {
                         int error = Marshal.GetLastWin32Error();
-                        if (error == 122)
+                        if (error != ERROR_NO_MORE_ITEMS)
                         {
-                            //it's supposed to give an error 122 as we just only retrieved the data size needed, so this is as designed
-                            IntPtr DeviceInterfaceDetailData = Marshal.AllocHGlobal((int)needed);
-                            try
-                            {
-                                uint size = needed;
-                                Marshal.WriteInt32(DeviceInterfaceDetailData, IntPtr.Size == 8 ? 8 : 6);
-                                bool result4 = SetupDiGetDeviceInterfaceDetail(PnPHandle, DevInterfaceData, DeviceInterfaceDetailData, size, out needed, DevInfoData);
-                                if (!result4)
-                                {
-                                    //shouldn't be an error here
-                                    int error1 = Marshal.GetLastWin32Error();
-                                    //todo: go +1 and contine the loop...this exception handing is incomplete
-                                }
-                                IntPtr pDevicePathName = new IntPtr(DeviceInterfaceDetailData.ToInt64() + 4);
-                                FDevicePathName = Marshal.PtrToStringAuto(pDevicePathName);
-                                //see if this driver has readwrite access
-                                FDevHandle = CreateFile(FDevicePathName, System.IO.FileAccess.ReadWrite, System.IO.FileShare.ReadWrite, IntPtr.Zero, System.IO.FileMode.Open, 0, IntPtr.Zero);
-                                if (FDevHandle.IsInvalid)
-                                {
-                                    FDevHandle = CreateFile(FDevicePathName, 0, System.IO.FileShare.ReadWrite, IntPtr.Zero, System.IO.FileMode.Open, 0, IntPtr.Zero);
-                                }
-                                if (!FDevHandle.IsInvalid)
-                                {
-                                    //this device has readwrite access, could it be the device we are looking for?
-                                    HIDD_ATTRIBUTES HIDAttributes = new HIDD_ATTRIBUTES();
-                                    HIDAttributes.Size = Marshal.SizeOf(HIDAttributes);
-                                    Boolean success = HidD_GetAttributes(FDevHandle, ref HIDAttributes);
-                                    if (success && HIDAttributes.VendorID == FVendorID && HIDAttributes.ProductID == FProductID)
-                                    {
-                                        //this is the device we are looking for
-                                        bFoundMyDevice = true;
-                                        FConnected = true;
-                                        DoLog("Connected.");
-                                        //normally you would start a read thread here, but we aren't doing that in this example. We'll just call .ReadData instead.
-                                        //we won't close our file handle here as it will be need in .SendData.
-                                    }
-                                    else
-                                    {
-                                        //not the device we are looking for
-                                        FDevHandle.Close();
-                                    }
-                                }
-                            }
-                            finally
-                            {
-                                Marshal.FreeHGlobal(DeviceInterfaceDetailData);
-                            }
+                            DoLog("Connect: SetupDiEnumDeviceInterfaces failed.");
                         }
+
+                        break;
                     }
+
+                    string devicePath;
+                    if (!TryGetDevicePath(PnPHandle, ref DevInterfaceData, out devicePath))
+                    {
+                        continue;
+                    }
+
+                    SafeFileHandle devHandle = OpenDeviceHandle(devicePath);
+                    if (devHandle.IsInvalid)
+                    {
+                        continue;
+                    }
+
+                    HIDD_ATTRIBUTES HIDAttributes = new HIDD_ATTRIBUTES();
+                    HIDAttributes.Size = Marshal.SizeOf(HIDAttributes);
+                    Boolean success = HidD_GetAttributes(devHandle, ref HIDAttributes);
+                    if (success && HIDAttributes.VendorID == FVendorID && HIDAttributes.ProductID == FProductID)
+                    {
+                        FDevicePathName = devicePath;
+                        FDevHandle = devHandle;
+                        FConnected = true;
+                        DoLog("Connected.");
+                        return;
+                    }
+
+                    devHandle.Close();
                 }
-                i++;
-            } while ((bFoundADevice) & (!bFoundMyDevice));
+            }
+            finally
+            {
+                SetupDiDestroyDeviceInfoList(PnPHandle);
+            }
         }
 
         //disconnect
@@ -262,7 +290,10 @@ namespace HIDCtrl
             //getting occasional error on shutdown due to something being left open...
             //not sure what effect garbage collector has on this.
             FConnected = false;
-            FDevHandle.Close();
+            if (FDevHandle != null && !FDevHandle.IsClosed)
+            {
+                FDevHandle.Close();
+            }
         }
 
         //send data to the driver
@@ -273,6 +304,7 @@ namespace HIDCtrl
             {
                 res = HidD_SetFeature(FDevHandle, Buffer, BufferLength + 1);
             }
+
             return res;
         }
 
@@ -284,7 +316,7 @@ namespace HIDCtrl
             if (FConnected)
             {
                 if (!FDevHandle.IsInvalid)
-                        
+
                 {
                     var overlapped = new NativeOverlapped();
                     overlapped.EventHandle = IntPtr.Zero;
@@ -292,10 +324,8 @@ namespace HIDCtrl
                     res = true;
                 }
             }
+
             return res;
         }
-
     }
-
-
 }
