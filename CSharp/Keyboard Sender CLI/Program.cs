@@ -157,7 +157,7 @@ namespace KeyboardSenderCLI
             var found = 0;
             try
             {
-                for (uint i = 0;; i++)
+                for (uint i = 0; ; i++)
                 {
                     var ifData = new SpDeviceInterfaceData();
                     ifData.cbSize = (uint)Marshal.SizeOf(ifData);

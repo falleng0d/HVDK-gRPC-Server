@@ -213,7 +213,7 @@ namespace HIDCtrl
 
             try
             {
-                for (uint i = 0;; i++)
+                for (uint i = 0; ; i++)
                 {
                     var devInterfaceData = new SpDeviceInterfaceData();
                     devInterfaceData.cbSize = (uint)Marshal.SizeOf(devInterfaceData);

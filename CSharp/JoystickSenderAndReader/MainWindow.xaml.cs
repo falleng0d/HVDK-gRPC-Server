@@ -104,7 +104,7 @@ namespace JoystickSenderAndReader
             var buf = GetBytesGdj(joyData, Marshal.SizeOf(joyData));
             //send empty buffer to driver
             _hid.ReadData(buf, (uint)Marshal.SizeOf(joyData));
-            var jd= FromBytes(buf);
+            var jd = FromBytes(buf);
             pbX.Value = jd.X;
             pbY.Value = jd.Y;
             pbZ.Value = jd.Z;

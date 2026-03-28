@@ -145,7 +145,7 @@ namespace App
             Send(0, 0, 0, 0, 0, 0, 0, 0);
         }
 
-            private void button3_Click(object sender, EventArgs e)
+        private void button3_Click(object sender, EventArgs e)
         {
             SetTarget();
             //we'll need to send a CTRL-A simultaneously, then press the Delete key to clear the selected text.
@@ -264,7 +264,7 @@ namespace App
             //tbLog.Focus();  
             _kUtils.AppActivate("Tetherscript Virtual Keyboard Driver Reader", 300);
         }
-    
+
     }
 
 }

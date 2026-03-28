@@ -62,7 +62,8 @@ namespace KeyboardUtils
         public Byte GetModifierKeyCode(string modifier)
         {
             var i = FModifiers.IndexOf(modifier);
-            if (i == -1) { return 0; } else { return (byte)i; };
+            if (i == -1) { return 0; } else { return (byte)i; }
+            ;
         }
 
         protected void AddModifierKeyCodes()
@@ -81,7 +82,8 @@ namespace KeyboardUtils
         public Byte GetKeyKeyCode(string key)
         {
             var i = FKeys.IndexOf(key);
-            if (i == -1) { return 0; } else { return (byte)i; };
+            if (i == -1) { return 0; } else { return (byte)i; }
+            ;
         }
 
         protected void AddKeyKeyCodes()

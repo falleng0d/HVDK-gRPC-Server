@@ -52,7 +52,8 @@ namespace App
             mouseRelData.ReportID = 1;
             mouseRelData.CommandCode = 2;
             byte btns = 0;
-            if (cbLeft.Checked) { btns = 1; };
+            if (cbLeft.Checked) { btns = 1; }
+            ;
             if (cbRight.Checked) { btns = (byte)(btns | (1 << 1)); }
             if (cbLeft.Checked) { btns = (byte)(btns | (1 << 2)); }
             mouseRelData.Buttons = btns;  //button states are represented by the 3 least significant bits

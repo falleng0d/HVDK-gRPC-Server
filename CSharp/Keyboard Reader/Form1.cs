@@ -27,12 +27,12 @@ namespace App
 
         private void Form1_Activated(object sender, EventArgs e)
         {
-            
+
         }
 
         private void Form1_Shown(object sender, EventArgs e)
         {
-            
+
         }
     }
 }
