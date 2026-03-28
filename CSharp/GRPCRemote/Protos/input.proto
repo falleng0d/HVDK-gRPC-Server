@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+option csharp_namespace = "GRPCRemote";
+
+service InputMethods {
+    rpc PressKey(Key) returns (Response);
+    rpc PressHotkey(Hotkey) returns (Response);
+    rpc PressMouseKey(MouseKey) returns (Response);
+    rpc MoveMouse(MouseMove) returns (Response);
+    rpc Ping(Empty) returns (Response);
+    rpc SetConfig(Config) returns (Config);
+    rpc GetConfig(Empty) returns (Config);
+}
+
+enum KeyActionType {
+    UP = 0;
+    DOWN = 1;
+    PRESS = 3;
+}
+
+message KeyOptions {
+    optional bool no_repeat = 1;
+    optional bool no_modifiers = 2;
+    repeated int32 modifiers = 3;
+}
+
+message Key {
+    int32 id = 1;
+    KeyActionType type = 2;
+    optional KeyOptions options = 3;
+}
+
+message HotkeyOptions {
+    optional int32 speed = 1;
+    optional bool no_modifiers = 2;
+}
+
+message Hotkey {
+    string hotkey = 1;
+    KeyActionType type = 2;
+    optional HotkeyOptions options = 3;
+}
+
+message MouseKey {
+    int32 id = 1;
+
+    enum KeyActionType {
+        UP = 0;
+        DOWN = 1;
+        PRESS = 3;
+    }
+
+    KeyActionType type = 2;
+}
+
+message MouseMove {
+    float x = 1;
+    float y = 2;
+    bool relative = 3;
+}
+
+message Response {
+    string message = 1;
+}
+
+message Config {
+    optional float cursor_speed = 1;
+    optional float cursor_acceleration = 2;
+}
+
+message Empty {}
