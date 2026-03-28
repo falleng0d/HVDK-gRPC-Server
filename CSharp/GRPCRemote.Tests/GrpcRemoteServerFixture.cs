@@ -105,6 +105,11 @@ public sealed class GrpcRemoteServerFixture : IAsyncLifetime
         return await ReadEventsAsync();
     }
 
+    public Task<IReadOnlyList<DriverEvent>> GetEventsAsync()
+    {
+        return ReadEventsAsync();
+    }
+
     private async Task WaitForServerAsync()
     {
         var started = DateTime.UtcNow;

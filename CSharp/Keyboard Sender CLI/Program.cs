@@ -28,7 +28,7 @@ namespace KeyboardSenderCLI
         private static extern void HidD_GetHidGuid(out Guid classGuid);
 
         [DllImport("HID.dll", CharSet = CharSet.Auto)]
-        private static extern bool HidD_GetAttributes(SafeHandle hidDeviceObject, ref HiddAttributes attributes);
+        private static extern bool HidD_GetAttributes(SafeHandle hidDeviceObject, ref HidController.HiddAttributes attributes);
 
         [DllImport("SetupApi.dll", CharSet = CharSet.Auto)]
         private static extern IntPtr SetupDiGetClassDevs(ref Guid classGuid, IntPtr enumerator, IntPtr hwndParent,
@@ -59,12 +59,9 @@ namespace KeyboardSenderCLI
             private IntPtr reserved;
         }
 
-        private struct HiddAttributes
+        private static void LogToConsole(object sender, LogArgs e)
         {
-            public int Size;
-            public ushort VendorId;
-            public ushort ProductId;
-            public ushort VersionNumber;
+            Console.WriteLine("[HID] " + e.Msg);
         }
 
         private static bool TryGetDevicePath(IntPtr devInfo, ref SpDeviceInterfaceData ifData, out string path)
@@ -117,7 +114,7 @@ namespace KeyboardSenderCLI
                               ProductId.ToString("X4") + ")...");
 
             var hid = new HidController();
-            hid.OnLog += (s, e) => Console.WriteLine("[HID] " + e.Msg);
+            hid.OnLog += new EventHandler<LogArgs>(LogToConsole);
             hid.VendorId = VendorId;
             hid.ProductId = ProductId;
 
@@ -186,13 +183,14 @@ namespace KeyboardSenderCLI
 
                     using (handle)
                     {
-                        var attr = new HiddAttributes();
+                        var attr = new HidController.HiddAttributes();
                         attr.Size = Marshal.SizeOf(attr);
+
                         if (HidD_GetAttributes(handle, ref attr))
                         {
                             var match = (attr.VendorId == VendorId && attr.ProductId == ProductId) ? " <-- TARGET" : "";
                             Console.WriteLine("  [" + i + "] VID=0x" + attr.VendorId.ToString("X4") + " PID=0x" +
-                                              attr.ProductId.ToString("X4") + match);
+                                              attr.ProductId.ToString("X4") + " VER=0x" + attr.VersionNumber.ToString("X4") + match);
                             Console.WriteLine("       " + path);
                             found++;
                         }

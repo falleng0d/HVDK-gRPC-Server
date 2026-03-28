@@ -9,6 +9,7 @@ public sealed class HvdkInputTransport : IInputTransport
 {
     private readonly object _sync = new();
     private readonly ILogger<HvdkInputTransport> _logger;
+    private readonly int _keyboardReportTimeoutMs;
     private HidController? _keyboardController;
     private HidController? _relativeMouseController;
     private HidController? _absoluteMouseController;
@@ -17,6 +18,7 @@ public sealed class HvdkInputTransport : IInputTransport
     public HvdkInputTransport(RemoteHostOptions options, ILogger<HvdkInputTransport> logger)
     {
         _logger = logger;
+        _keyboardReportTimeoutMs = options.KeyboardReportTimeoutMs;
     }
 
     public Task SendKeyboardAsync(KeyboardReport report, CancellationToken cancellationToken)
@@ -24,11 +26,14 @@ public sealed class HvdkInputTransport : IInputTransport
         cancellationToken.ThrowIfCancellationRequested();
 
         var controller = GetOrCreateController(ref _keyboardController, DriversConst.TtcProductidKeyboard);
+        var timeoutMilliseconds = report.TimeoutMilliseconds == 0
+            ? (uint)_keyboardReportTimeoutMs
+            : report.TimeoutMilliseconds;
         var keyboardReport = new SetFeatureKeyboard
         {
             ReportID = 1,
             CommandCode = 2,
-            Timeout = report.TimeoutMilliseconds / 5,
+            Timeout = timeoutMilliseconds / 5,
             Modifier = report.Modifier,
             Padding = 0,
             Key0 = GetKey(report.Keys, 0),
