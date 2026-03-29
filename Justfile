@@ -11,7 +11,7 @@ build-grpcremote-service:
     dotnet build GRPCRemoteService/GRPCRemoteService.csproj -c Release
 
 # Build the Windows service installer MSI
-build-installer:
+build-installer: build-release
     dotnet build GRPCRemoteInstaller/GRPCRemoteInstaller.wixproj -c Release
 
 # Build in Release mode
