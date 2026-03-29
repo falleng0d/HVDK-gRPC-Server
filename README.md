@@ -1,6 +1,36 @@
-# HVDK (Tetherscript Virtual HID Driver Kit)
+# HVDK gRPC Server
 
-Windows SDK for sending keyboard and mouse input via Tetherscript's Virtual HID drivers.
+GRPCRemote is a gRPC server that exposes the same API as the Python `pi-remote`
+implementation, but uses the HVDK driver for hardware injection instead of the
+original custom/pi-remote driver. It allows external clients to send keyboard,
+mouse, and hotkey commands that get translated into HID reports and sent to
+virtual HID devices.
+
+## Overview
+
+- **Purpose**: Provide a network-accessible gRPC API for injecting keyboard and mouse
+  input using Windows HVDK drivers
+- **Reference**: The Python `pi-remote` server in the parent directory defines the
+  gRPC contract
+- **Architecture**: ASP.NET Core gRPC server with pluggable input transports
+- **Binding**: Server binds to `0.0.0.0:9036` to accept external connections
+- **Driver**: HVDK (Tetherscript Virtual HID Driver Kit)
+
+## Driver Communication
+
+GRPCRemote communicates with HVDK drivers through:
+
+1. **Common/HIDCtrl.cs** - Low-level HID device control (linked into GRPCRemote)
+2. **Common/Drivers.cs** - Driver struct definitions
+
+The server uses an `IInputTransport` abstraction:
+- `HvdkInputTransport` - Real HVDK driver communication (production use)
+- `RecordingInputTransport` - Test mode that records events for verification
+
+Key classes:
+- `GRPCRemote/Drivers/Reports.cs` - HID report structures (KeyboardReport, MouseReport)
+- `GRPCRemote/Drivers/HvdkInputTransport.cs` - Sends reports to HVDK devices
+- `GRPCRemote/Input/RemoteKeyMap.cs` - Maps key names to HID codes
 
 ## Projects
 
