@@ -81,7 +81,7 @@ public sealed class InputCoordinator
         if (_pendingModifiers.Count > 0)
         {
             _logger.LogDebug("Cancelling pending modifier releases for {Count} modifiers and releasing immediately", _pendingModifiers.Count);
-            _modifierReleaseCts?.Cancel();
+            await _modifierReleaseCts?.CancelAsync()!;
             foreach (var (key, _) in _pendingModifiers)
             {
                 await ApplyKeyStateAsync(key, RemoteActionType.Up, cancellationToken);
@@ -114,9 +114,12 @@ public sealed class InputCoordinator
 
         foreach (var step in HotkeyParser.Parse(hotkey))
         {
-            await Task.Delay(step.WaitMilliseconds.GetValueOrDefault(_configService.Snapshot.KeyPressInterval), cancellationToken);
-
+            var delay = step.WaitMilliseconds ?? options.Speed ??
+                _configService.Snapshot.KeyPressInterval;
+            
             await ApplyKeyStateAsync(step.Key, step.Action, cancellationToken);
+            _logger.LogDebug("Sent hotkey step {Key} {Action} with delay {Delay}", step.Key, step.Action, delay);
+            await Task.Delay(delay, cancellationToken);
         }
     }
 
