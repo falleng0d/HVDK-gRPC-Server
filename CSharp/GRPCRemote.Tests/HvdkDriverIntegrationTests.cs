@@ -153,6 +153,29 @@ public sealed class HvdkDriverIntegrationTests : IDisposable
         await transport.SendKeyboardAsync(releaseReport, CancellationToken.None);
     }
 
+    [Theory]
+    [InlineData(RemoteKey.KeyMediaPlayPause)]
+    [InlineData(RemoteKey.KeyMediaStop)]
+    [InlineData(RemoteKey.KeyMediaPrevTrack)]
+    [InlineData(RemoteKey.KeyMediaNextTrack)]
+    [InlineData(RemoteKey.KeyVolumeMute)]
+    [InlineData(RemoteKey.KeyVolumeUp)]
+    [InlineData(RemoteKey.KeyVolumeDown)]
+    [InlineData(RemoteKey.KeyBrowserBack)]
+    [InlineData(RemoteKey.KeyBrowserForward)]
+    [InlineData(RemoteKey.KeyBrowserRefresh)]
+    public async Task Media_keys_work(RemoteKey key)
+    {
+        using var transport = new HvdkInputTransport(_options, _logger);
+        
+        var report = new KeyboardReport(0, [RemoteKeyMap.GetStandardHidUsage(key)], 0);
+        
+        await transport.SendKeyboardAsync(report, CancellationToken.None);
+        
+        var releaseReport = new KeyboardReport(0, [], 0);
+        await transport.SendKeyboardAsync(releaseReport, CancellationToken.None);
+    }
+
     public void Dispose()
     {
     }

@@ -173,7 +173,7 @@ public sealed class HvdkInputTransport : IInputTransport
             }
 
             var productIdValue = (ushort)productId;
-            _logger.LogInformation("Attempting to connect to HVDK device {ProductId} (VendorId={VendorId})",
+            _logger.LogInformation("Attempting to connect to HVDK device ProductId=0x{ProductId:X4} (VendorId=0x{VendorId:X4})",
                 productIdValue, (ushort)DriversConst.TtcVendorid);
 
             controller ??= new HidController

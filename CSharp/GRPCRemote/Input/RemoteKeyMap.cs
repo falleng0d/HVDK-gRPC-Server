@@ -240,6 +240,16 @@ public static class RemoteKeyMap
         [RemoteKey.KeyNumpad9] = 0x61,
         [RemoteKey.KeyNumpad0] = 0x62,
         [RemoteKey.KeyDecimal] = 0x63,
+        [RemoteKey.KeyMediaPlayPause] = 0xE8,
+        [RemoteKey.KeyMediaPrevTrack] = 0xE6,
+        [RemoteKey.KeyMediaNextTrack] = 0xE5,
+        [RemoteKey.KeyVolumeMute] = 0xE2,
+        [RemoteKey.KeyVolumeUp] = 0xEA,
+        [RemoteKey.KeyVolumeDown] = 0xE9,
+        [RemoteKey.KeyMediaStop] = 0xE7,
+        [RemoteKey.KeyBrowserBack] = 0xE4,
+        [RemoteKey.KeyBrowserForward] = 0xE3,
+        [RemoteKey.KeyBrowserRefresh] = 0xE1,
     };
 
     private static readonly IReadOnlyDictionary<RemoteKey, byte> ModifierMasks = new Dictionary<RemoteKey, byte>

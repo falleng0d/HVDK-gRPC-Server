@@ -67,7 +67,7 @@ public sealed class InputMethodsGrpcService(
     {
         try
         {
-            await inputCoordinator.MoveMouseAsync(request.X, request.Y, request.Relative, context.CancellationToken);
+            await inputCoordinator.MoveMouseAsync(request.X, request.Y, true, context.CancellationToken);
             return Ok();
         }
         catch (Exception ex)
