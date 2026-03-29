@@ -16,7 +16,7 @@ public sealed class InputCoordinator
     private byte _modifierState;
     private byte _mouseButtons;
     private CancellationTokenSource? _modifierReleaseCts;
-    private readonly List<(RemoteKey Key, RemoteActionType Action)> _pendingModifiers = new();
+    private readonly List<(RemoteKey Key, RemoteActionType Action)> _pendingModifiers = [];
 
     public InputCoordinator(
         ConfigService configService,
