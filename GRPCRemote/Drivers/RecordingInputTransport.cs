@@ -15,7 +15,7 @@ public sealed class RecordingInputTransport : IInputTransport
     public RecordingInputTransport(RemoteHostOptions options, ILogger<RecordingInputTransport> logger)
     {
         _logger = logger;
-        _recordingPath = Path.GetFullPath(options.RecordingPath);
+        _recordingPath = AppPaths.ResolveRecordingPath(options.RecordingPath);
         
         logger.LogInformation("Recording input events to {Path}", _recordingPath);
 

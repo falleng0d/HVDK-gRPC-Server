@@ -100,8 +100,9 @@ console session.
 - The active console session owns the worker process
 - Windows Service recovery is configured to restart it if it exits unexpectedly
 - Windows Firewall rules are created for inbound and outbound TCP/UDP traffic for the installed service executable and port `9036`
-- Service logs are written under the install directory in `logs\grpc-remote-service-*.log`
-- Worker logs are written under the install directory in `logs\grpc-remote-worker-*.log`
+- Roaming config is stored under `%AppData%\GRPCRemote\grpc-remote.config.json`
+- Local logs are stored under `%LocalAppData%\GRPCRemote\logs\`
+- Recording-mode output defaults to `%LocalAppData%\GRPCRemote\grpc-remote.events.jsonl`
 
 Install silently:
 

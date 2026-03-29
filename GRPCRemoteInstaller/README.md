@@ -13,6 +13,12 @@ The installer build publishes both `GRPCRemoteService` and `GRPCRemote` as
 self-contained `win-x64` apps, generates WiX authoring for the published
 files, and produces an MSI.
 
+At runtime:
+
+- config is stored under `%AppData%\GRPCRemote\`
+- logs are stored under `%LocalAppData%\GRPCRemote\logs\`
+- recording-mode event output is stored under `%LocalAppData%\GRPCRemote\`
+
 Output:
 
 ```powershell

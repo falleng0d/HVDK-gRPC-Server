@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var logsDirectory = Path.Combine(AppContext.BaseDirectory, "logs");
+var logsDirectory = AppPaths.GetLogsDirectory();
 builder.Logging.AddProvider(new FileLoggerProvider(logsDirectory, "grpc-remote-worker"));
 
 using var bootstrapLoggerFactory = LoggerFactory.Create(loggingBuilder =>
@@ -44,6 +44,8 @@ builder.Services.AddSingleton<InputCoordinator>();
 builder.Services.AddGrpc();
 
 var app = builder.Build();
+
+_ = app.Services.GetRequiredService<ConfigService>();
 
 app.MapGrpcService<InputMethodsGrpcService>();
 app.MapGet("/", () => "Use a gRPC client to communicate with the remote input endpoints.");

@@ -1,9 +1,10 @@
 using GRPCRemote.Logging;
 using GRPCRemoteService;
+using GRPCRemote.Configuration;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-var logsDirectory = Path.Combine(AppContext.BaseDirectory, "logs");
+var logsDirectory = AppPaths.GetLogsDirectory();
 builder.Logging.AddProvider(new FileLoggerProvider(logsDirectory, "grpc-remote-service"));
 builder.Services.AddWindowsService(options =>
 {
