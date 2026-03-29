@@ -6,6 +6,10 @@ build:
 build-grpcremote:
     dotnet build GRPCRemote/GRPCRemote.csproj -c Release
 
+# Build the Windows service installer MSI
+build-installer:
+    dotnet build GRPCRemoteInstaller/GRPCRemoteInstaller.wixproj -c Release
+
 # Build in Release mode
 build-release:
     dotnet build Utils.sln -c Release

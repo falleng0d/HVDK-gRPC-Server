@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+
+  <Package
+    Name="HVDK GRPCRemote"
+    Manufacturer="matj.dev <mateus@matj.dev>"
+    Version="1.0.0"
+    UpgradeCode="E4A56297-EC74-47BF-9C65-82A2DC1C9C7A"
+    Scope="perMachine">
+
+    <SummaryInformation Description="Installs the HVDK gRPC Remote Windows Service." />
+    <MajorUpgrade DowngradeErrorMessage="A newer version of HVDK GRPCRemote is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Feature Id="MainFeature" Title="HVDK GRPCRemote Service" Level="1">
+      <ComponentRef Id="ServiceExecutableComponent" />
+      <ComponentGroupRef Id="PublishedFiles" />
+    </Feature>
+  </Package>
+
+  <Fragment>
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="GRPCRemote" />
+    </StandardDirectory>
+  </Fragment>
+
+  <Fragment>
+    <DirectoryRef Id="INSTALLFOLDER">
+      <Component Id="ServiceExecutableComponent" Guid="*" Bitness="always64">
+        <File Id="ServiceExecutableFile" Source="$(var.PublishDir)\GRPCRemote.exe" KeyPath="yes" />
+        <ServiceInstall
+          Id="GRPCRemoteServiceInstall"
+          Name="GRPCRemote"
+          DisplayName="HVDK gRPC Remote Input Server"
+          Description="Exposes HVDK virtual HID driver input over gRPC on port 9036."
+          Type="ownProcess"
+          Start="auto"
+          ErrorControl="normal"
+          Vital="yes"
+          Arguments="--urls http://0.0.0.0:9036">
+          <util:ServiceConfig
+            FirstFailureActionType="restart"
+            SecondFailureActionType="restart"
+            ThirdFailureActionType="restart"
+            RestartServiceDelayInSeconds="30"
+            ResetPeriodInDays="1" />
+        </ServiceInstall>
+        <ServiceControl
+          Id="GRPCRemoteServiceControl"
+          Name="GRPCRemote"
+          Start="install"
+          Stop="both"
+          Remove="uninstall"
+          Wait="yes" />
+      </Component>
+    </DirectoryRef>
+  </Fragment>
+</Wix>
