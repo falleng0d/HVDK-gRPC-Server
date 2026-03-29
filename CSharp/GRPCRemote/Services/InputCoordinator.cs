@@ -29,7 +29,10 @@ public sealed class InputCoordinator
 
     public async Task PressKeyAsync(RemoteKey key, RemoteActionType action, KeyRequestOptions options, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("PressKey {Key} {Action}", key, action);
+        var modifiers = string.Join(", ", options.Modifiers);
+        _logger.LogInformation(
+            "PressKey {Key} {Action} Modifiers=[{Modifiers}] NoRepeat={NoRepeat} DisableUnwantedModifiers={DisableUnwantedModifiers}",
+            key, action, modifiers, options.NoRepeat, options.DisableUnwantedModifiers);
 
         if (action == RemoteActionType.Press)
         {
