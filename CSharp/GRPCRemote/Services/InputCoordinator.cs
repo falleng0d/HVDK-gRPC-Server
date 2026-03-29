@@ -53,10 +53,7 @@ public sealed class InputCoordinator
 
         foreach (var step in HotkeyParser.Parse(hotkey))
         {
-            if (step.WaitMilliseconds.HasValue)
-            {
-                await Task.Delay(step.WaitMilliseconds.Value, cancellationToken);
-            }
+            await Task.Delay(step.WaitMilliseconds.GetValueOrDefault(_configService.Snapshot.KeyPressInterval), cancellationToken);
 
             await ApplyKeyStateAsync(step.Key, step.Action, cancellationToken);
         }
