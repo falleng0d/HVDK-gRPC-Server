@@ -9,6 +9,7 @@ public sealed class InputCoordinator
     private readonly object _sync = new();
     private readonly ConfigService _configService;
     private readonly IInputTransport _transport;
+    private readonly VirtualKeyService _virtualKeyService;
     private readonly RemoteHostOptions _options;
     private readonly ILogger<InputCoordinator> _logger;
     private readonly byte[] _pressedKeys = new byte[6];
@@ -18,11 +19,13 @@ public sealed class InputCoordinator
     public InputCoordinator(
         ConfigService configService,
         IInputTransport transport,
+        VirtualKeyService virtualKeyService,
         RemoteHostOptions options,
         ILogger<InputCoordinator> logger)
     {
         _configService = configService;
         _transport = transport;
+        _virtualKeyService = virtualKeyService;
         _options = options;
         _logger = logger;
     }
@@ -34,6 +37,12 @@ public sealed class InputCoordinator
             "PressKey {Key} {Action} Modifiers=[{Modifiers}] NoRepeat={NoRepeat} DisableUnwantedModifiers={DisableUnwantedModifiers}",
             key, action, modifiers, options.NoRepeat, options.DisableUnwantedModifiers);
 
+        if (RemoteKeyMap.IsMediaKey(key))
+        {
+            await SendMediaKeyAsync(key, action, cancellationToken);
+            return;
+        }
+
         if (action == RemoteActionType.Press)
         {
             await ApplyKeyStateAsync(key, RemoteActionType.Down, cancellationToken);
@@ -43,6 +52,19 @@ public sealed class InputCoordinator
         }
 
         await ApplyKeyStateAsync(key, action, cancellationToken);
+    }
+
+    private async Task SendMediaKeyAsync(RemoteKey key, RemoteActionType action, CancellationToken cancellationToken)
+    {
+        if (action == RemoteActionType.Press)
+        {
+            await _virtualKeyService.SendMediaKeyAsync(key, RemoteActionType.Down, cancellationToken);
+            await Task.Delay(_configService.Snapshot.KeyPressInterval, cancellationToken);
+            await _virtualKeyService.SendMediaKeyAsync(key, RemoteActionType.Up, cancellationToken);
+            return;
+        }
+
+        await _virtualKeyService.SendMediaKeyAsync(key, action, cancellationToken);
     }
 
     public async Task PressHotkeyAsync(string hotkey, RemoteActionType action, HotkeyRequestOptions options, CancellationToken cancellationToken)

@@ -252,6 +252,20 @@ public static class RemoteKeyMap
         [RemoteKey.KeyBrowserRefresh] = 0xE1,
     };
 
+    private static readonly IReadOnlyDictionary<RemoteKey, ushort> MediaKeyVkCodes = new Dictionary<RemoteKey, ushort>
+    {
+        [RemoteKey.KeyMediaPlayPause] = 0xB3,
+        [RemoteKey.KeyMediaStop] = 0xB2,
+        [RemoteKey.KeyMediaPrevTrack] = 0xB1,
+        [RemoteKey.KeyMediaNextTrack] = 0xB0,
+        [RemoteKey.KeyVolumeMute] = 0xAD,
+        [RemoteKey.KeyVolumeUp] = 0xAF,
+        [RemoteKey.KeyVolumeDown] = 0xAE,
+        [RemoteKey.KeyBrowserBack] = 0xA6,
+        [RemoteKey.KeyBrowserForward] = 0xA7,
+        [RemoteKey.KeyBrowserRefresh] = 0xA8,
+    };
+
     private static readonly IReadOnlyDictionary<RemoteKey, byte> ModifierMasks = new Dictionary<RemoteKey, byte>
     {
         [RemoteKey.KeyLControl] = 0x01,
@@ -310,6 +324,21 @@ public static class RemoteKeyMap
     public static bool IsModifier(RemoteKey key)
     {
         return ModifierMasks.ContainsKey(key);
+    }
+
+    public static bool IsMediaKey(RemoteKey key)
+    {
+        return MediaKeyVkCodes.ContainsKey(key);
+    }
+
+    public static ushort GetMediaKeyVkCode(RemoteKey key)
+    {
+        if (!MediaKeyVkCodes.TryGetValue(key, out var value))
+        {
+            throw new NotSupportedException($"Key {key} is not a media key.");
+        }
+
+        return value;
     }
 
     public static byte GetModifierMask(RemoteKey key)

@@ -222,8 +222,8 @@ public sealed class RemoteIntegrationTests
 
         await client.MoveMouseAsync(new MouseMove
         {
-            X = 120,
-            Y = 240,
+            X = 24,
+            Y = 48,
             Relative = false,
         });
 
@@ -252,10 +252,10 @@ public sealed class RemoteIntegrationTests
 
         Assert.Contains(events, driverEvent =>
             driverEvent.Kind == "mouse" &&
-            !driverEvent.Relative &&
+            driverEvent.Relative &&
             driverEvent.Buttons == 0 &&
-            driverEvent.X == 120 &&
-            driverEvent.Y == 240);
+            driverEvent.X == 127 &&
+            driverEvent.Y == 127);
     }
 
     [Fact]

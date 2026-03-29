@@ -18,6 +18,7 @@ builder.WebHost.ConfigureKestrel(options =>
 builder.Services.Configure<RemoteHostOptions>(builder.Configuration.GetSection(RemoteHostOptions.SectionName));
 builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<RemoteHostOptions>>().Value);
 builder.Services.AddSingleton<ConfigService>();
+builder.Services.AddSingleton<VirtualKeyService>();
 builder.Services.AddSingleton<IInputTransport>(sp =>
 {
     var options = sp.GetRequiredService<RemoteHostOptions>();
