@@ -2,6 +2,10 @@
 build:
     dotnet build Utils.sln
 
+# Build GRPCRemote in Release mode
+build-grpcremote:
+    dotnet build GRPCRemote/GRPCRemote.csproj -c Release
+
 # Build in Release mode
 build-release:
     dotnet build Utils.sln -c Release
@@ -10,9 +14,17 @@ build-release:
 build-project PROJECT:
     dotnet build {{PROJECT}}
 
-# Run tests
+# Run all tests
 test:
     dotnet test
+
+# Run non-integration tests for GRPCRemote
+test-grpcremote:
+    dotnet test GRPCRemote.Tests/GRPCRemote.Tests.csproj --filter "FullyQualifiedName!~Integration"
+
+# Run integration tests for GRPCRemote
+test-grpcremote-integration:
+    dotnet test GRPCRemote.Tests/GRPCRemote.Tests.csproj --filter "FullyQualifiedName~Integration"
 
 # Clean build artifacts
 clean:
