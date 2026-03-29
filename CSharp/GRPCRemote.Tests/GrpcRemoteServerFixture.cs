@@ -37,6 +37,11 @@ public sealed class GrpcRemoteServerFixture : IAsyncLifetime
     public async Task DisposeAsync()
     {
         await StopServerAsync();
+        
+        // Log server output for debugging.
+        
+        await File.WriteAllTextAsync("grpc-remote-server-out.txt", _stdout.ToString());
+        await File.WriteAllTextAsync("grpc-remote-server-err.txt", _stderr.ToString());
 
         TryDelete(_eventLogPath);
         TryDelete(_configPath);
