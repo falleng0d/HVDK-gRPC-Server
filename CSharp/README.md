@@ -1,19 +1,15 @@
 # HVDK (Tetherscript Virtual HID Driver Kit)
 
-Windows SDK for sending keyboard, mouse, joystick, and gamepad input via Tetherscript's Virtual HID drivers.
+Windows SDK for sending keyboard and mouse input via Tetherscript's Virtual HID drivers.
 
 ## Projects
 
-| Project | Type | Description |
-|---------|------|-------------|
-| Keyboard Sender | WinForms | Sends keyboard input via virtual HID |
-| Keyboard Reader | WinForms | Reads keyboard input from virtual HID |
-| Mouse Sender Abs | WinForms | Sends absolute mouse position |
-| Mouse Sender Rel | WinForms | Sends relative mouse movement |
-| JoystickSenderAndReader | WPF | Sends and reads joystick/gamepad input |
-| GRPCRemote | ASP.NET Core | gRPC server for remote input injection |
-| GRPCRemoteClient | Console | CLI client for GRPCRemote |
-| GRPCRemote.Tests | xUnit | Unit and integration tests |
+| Project             | Type         | Description                                    |
+|---------------------|--------------|------------------------------------------------|
+| Keyboard Sender CLI | Console      | CLI for sending keyboard input via virtual HID |
+| GRPCRemote          | ASP.NET Core | gRPC server for remote input injection         |
+| GRPCRemoteClient    | Console      | CLI client for GRPCRemote                      |
+| GRPCRemote.Tests    | xUnit        | Unit and integration tests                     |
 
 ## Requirements
 
