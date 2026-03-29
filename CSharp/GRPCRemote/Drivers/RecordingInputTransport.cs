@@ -16,6 +16,8 @@ public sealed class RecordingInputTransport : IInputTransport
     {
         _logger = logger;
         _recordingPath = Path.GetFullPath(options.RecordingPath);
+        
+        logger.LogInformation("Recording input events to {Path}", _recordingPath);
 
         var directory = Path.GetDirectoryName(_recordingPath);
         if (!string.IsNullOrEmpty(directory))

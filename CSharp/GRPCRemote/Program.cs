@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
+var logger = LoggerFactory.Create(loggingBuilder => loggingBuilder.AddConsole()).CreateLogger<Program>();
 
 builder.WebHost.ConfigureKestrel(options =>
 {
@@ -21,6 +22,8 @@ builder.Services.AddSingleton<IInputTransport>(sp =>
 {
     var options = sp.GetRequiredService<RemoteHostOptions>();
     var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+    
+    logger.LogInformation("Creating input transport for driver mode '{DriverMode}'", options.DriverMode);
 
     return options.DriverMode.Equals("Recording", StringComparison.OrdinalIgnoreCase)
         ? new RecordingInputTransport(options, loggerFactory.CreateLogger<RecordingInputTransport>())

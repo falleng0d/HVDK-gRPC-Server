@@ -19,11 +19,16 @@ public sealed class HvdkInputTransport : IInputTransport
     {
         _logger = logger;
         _keyboardReportTimeoutMs = options.KeyboardReportTimeoutMs;
+        
+        logger.LogInformation("HVDK input transport created. Keyboard report timeout: {KeyboardReportTimeoutMs}ms", _keyboardReportTimeoutMs);
     }
 
     public Task SendKeyboardAsync(KeyboardReport report, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        _logger.LogDebug("SendKeyboardAsync: Modifier={Modifier}, Keys=[{Keys}], Timeout={Timeout}",
+            report.Modifier, string.Join(",", report.Keys), report.TimeoutMilliseconds);
 
         var controller = GetOrCreateController(ref _keyboardController, DriversConst.TtcProductidKeyboard);
         var timeoutMilliseconds = report.TimeoutMilliseconds == 0
@@ -44,13 +49,30 @@ public sealed class HvdkInputTransport : IInputTransport
             Key5 = GetKey(report.Keys, 5),
         };
 
-        Send(controller, keyboardReport);
+        _logger.LogDebug("Sending keyboard report: ReportID={ReportID}, CommandCode={CommandCode}, Modifier={Modifier}, Keys=[{Keys}]",
+            keyboardReport.ReportID, keyboardReport.CommandCode, keyboardReport.Modifier,
+            string.Join(",", new[] { keyboardReport.Key0, keyboardReport.Key1, keyboardReport.Key2, keyboardReport.Key3, keyboardReport.Key4, keyboardReport.Key5 }));
+
+        var success = Send(controller, keyboardReport);
+        if (!success)
+        {
+            _logger.LogError("HVDK driver rejected keyboard report. Modifier={Modifier}, Keys=[{Keys}]",
+                report.Modifier, string.Join(",", report.Keys));
+        }
+        else
+        {
+            _logger.LogDebug("Keyboard report sent successfully.");
+        }
+
         return Task.CompletedTask;
     }
 
     public Task SendRelativeMouseAsync(RelativeMouseReport report, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        _logger.LogDebug("SendRelativeMouseAsync: Buttons={Buttons}, X={X}, Y={Y}",
+            report.Buttons, report.X, report.Y);
 
         var controller = GetOrCreateController(ref _relativeMouseController, DriversConst.TtcProductidMouserel);
         var mouseReport = new SetFeatureMouseRel
@@ -62,13 +84,29 @@ public sealed class HvdkInputTransport : IInputTransport
             Y = report.Y,
         };
 
-        Send(controller, mouseReport);
+        _logger.LogDebug("Sending relative mouse report: ReportID={ReportID}, CommandCode={CommandCode}, Buttons={Buttons}, X={X}, Y={Y}",
+            mouseReport.ReportID, mouseReport.CommandCode, mouseReport.Buttons, mouseReport.X, mouseReport.Y);
+
+        var success = Send(controller, mouseReport);
+        if (!success)
+        {
+            _logger.LogError("HVDK driver rejected relative mouse report. Buttons={Buttons}, X={X}, Y={Y}",
+                report.Buttons, report.X, report.Y);
+        }
+        else
+        {
+            _logger.LogDebug("Relative mouse report sent successfully.");
+        }
+
         return Task.CompletedTask;
     }
 
     public Task SendAbsoluteMouseAsync(AbsoluteMouseReport report, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        _logger.LogDebug("SendAbsoluteMouseAsync: Buttons={Buttons}, X={X}, Y={Y}",
+            report.Buttons, report.X, report.Y);
 
         var controller = GetOrCreateController(ref _absoluteMouseController, DriversConst.TtcProductidMouseabs);
         var mouseReport = new SetFeatureMouseAbs
@@ -80,7 +118,20 @@ public sealed class HvdkInputTransport : IInputTransport
             Y = report.Y,
         };
 
-        Send(controller, mouseReport);
+        _logger.LogDebug("Sending absolute mouse report: ReportID={ReportID}, CommandCode={CommandCode}, Buttons={Buttons}, X={X}, Y={Y}",
+            mouseReport.ReportID, mouseReport.CommandCode, mouseReport.Buttons, mouseReport.X, mouseReport.Y);
+
+        var success = Send(controller, mouseReport);
+        if (!success)
+        {
+            _logger.LogError("HVDK driver rejected absolute mouse report. Buttons={Buttons}, X={X}, Y={Y}",
+                report.Buttons, report.X, report.Y);
+        }
+        else
+        {
+            _logger.LogDebug("Absolute mouse report sent successfully.");
+        }
+
         return Task.CompletedTask;
     }
 
@@ -98,10 +149,15 @@ public sealed class HvdkInputTransport : IInputTransport
                 return;
             }
 
+            _logger.LogInformation("Disposing HVDK transport, disconnecting controllers...");
+
             _keyboardController?.Disconnect();
             _relativeMouseController?.Disconnect();
             _absoluteMouseController?.Disconnect();
+
             _disposed = true;
+
+            _logger.LogInformation("HVDK transport disposed.");
         }
     }
 
@@ -116,24 +172,31 @@ public sealed class HvdkInputTransport : IInputTransport
                 return controller;
             }
 
+            var productIdValue = (ushort)productId;
+            _logger.LogInformation("Attempting to connect to HVDK device {ProductId} (VendorId={VendorId})",
+                productIdValue, (ushort)DriversConst.TtcVendorid);
+
             controller ??= new HidController
             {
                 VendorId = (ushort)DriversConst.TtcVendorid,
-                ProductId = (ushort)productId,
+                ProductId = productIdValue,
             };
+
+            controller.OnLog += (_, args) => _logger.LogDebug("HID: {Message}", args.Msg);
 
             controller.Connect();
             if (!controller.Connected)
             {
-                throw new InvalidOperationException($"Unable to connect to HVDK device {(ushort)productId:x4}.");
+                _logger.LogError("Failed to connect to HVDK device {ProductId}. Device not found or inaccessible.", productIdValue);
+                throw new InvalidOperationException($"Unable to connect to HVDK device {productIdValue:x4}.");
             }
 
-            _logger.LogInformation("Connected to HVDK device {ProductId}", (ushort)productId);
+            _logger.LogInformation("Successfully connected to HVDK device {ProductId}", productIdValue);
             return controller;
         }
     }
 
-    private static void Send<TReport>(HidController controller, TReport report)
+    private static bool Send<TReport>(HidController controller, TReport report)
         where TReport : struct
     {
         var size = Marshal.SizeOf<TReport>();
@@ -150,10 +213,7 @@ public sealed class HvdkInputTransport : IInputTransport
             Marshal.FreeHGlobal(memory);
         }
 
-        if (!controller.SendData(buffer, (uint)size))
-        {
-            throw new InvalidOperationException("HVDK driver rejected the report.");
-        }
+        return controller.SendData(buffer, (uint)size);
     }
 
     private static byte GetKey(IReadOnlyList<byte> keys, int index)

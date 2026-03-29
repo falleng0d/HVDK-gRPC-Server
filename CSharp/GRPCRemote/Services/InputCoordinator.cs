@@ -154,6 +154,9 @@ public sealed class InputCoordinator
 
             report = CreateKeyboardReport();
         }
+        
+        _logger.LogDebug("Sending keyboard report to transport: Modifier={Modifier}, Keys=[{Keys}]", report.Modifier,
+            string.Join(",", report.Keys));
 
         await _transport.SendKeyboardAsync(report, cancellationToken);
     }
