@@ -1,0 +1,56 @@
+name: Release
+
+on:
+  push:
+  tags:
+    - 'v*'
+
+jobs:
+  test:
+    name: Test
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore GRPCRemote.Tests/GRPCRemote.Tests.csproj
+
+      - name: Test
+        run: dotnet test GRPCRemote.Tests/GRPCRemote.Tests.csproj --filter "FullyQualifiedName!~Integration" --no-restore
+
+  build:
+    name: Build
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore GRPCRemote/GRPCRemote.csproj
+
+      - name: Build
+        run: dotnet build GRPCRemote/GRPCRemote.csproj -c Release --no-restore
+
+      - name: Publish
+        run: dotnet publish GRPCRemote/GRPCRemote.csproj -c Release -o ./publish --no-restore
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./publish/*
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
