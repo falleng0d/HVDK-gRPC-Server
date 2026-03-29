@@ -8,16 +8,12 @@ using Microsoft.Extensions.Options;
 var builder = WebApplication.CreateBuilder(args);
 
 var logsDirectory = Path.Combine(AppContext.BaseDirectory, "logs");
-builder.Logging.AddProvider(new FileLoggerProvider(logsDirectory));
-builder.Host.UseWindowsService(options =>
-{
-    options.ServiceName = "GRPCRemote";
-});
+builder.Logging.AddProvider(new FileLoggerProvider(logsDirectory, "grpc-remote-worker"));
 
 using var bootstrapLoggerFactory = LoggerFactory.Create(loggingBuilder =>
 {
     loggingBuilder.AddConsole();
-    loggingBuilder.AddProvider(new FileLoggerProvider(logsDirectory));
+    loggingBuilder.AddProvider(new FileLoggerProvider(logsDirectory, "grpc-remote-worker"));
 });
 var logger = bootstrapLoggerFactory.CreateLogger<Program>();
 

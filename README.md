@@ -91,14 +91,17 @@ Run the published binary directly:
 
 ## Windows Service Installer
 
-`GRPCRemoteInstaller` builds an MSI that installs `GRPCRemote` as a Windows
-Service named `GRPCRemote`.
+`GRPCRemoteInstaller` builds an MSI that installs a watchdog Windows Service
+named `GRPCRemote`, which launches `GRPCRemote.exe` in the active interactive
+console session.
 
 - The service starts automatically at boot
-- The service runs `GRPCRemote.exe --urls http://0.0.0.0:9036`
+- The service launches the worker with `--urls http://0.0.0.0:9036`
+- The active console session owns the worker process
 - Windows Service recovery is configured to restart it if it exits unexpectedly
-- Windows Firewall rules are created for inbound and outbound TCP/UDP traffic for `GRPCRemote.exe` and port `9036`
-- Service logs are written under the install directory in `logs\`
+- Windows Firewall rules are created for inbound and outbound TCP/UDP traffic for the installed service executable and port `9036`
+- Service logs are written under the install directory in `logs\grpc-remote-service-*.log`
+- Worker logs are written under the install directory in `logs\grpc-remote-worker-*.log`
 
 Install silently:
 

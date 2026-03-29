@@ -1,6 +1,7 @@
 # GRPCRemote Installer
 
-This project builds an MSI that installs `GRPCRemote.exe` as a Windows Service.
+This project builds an MSI that installs `GRPCRemoteService.exe` as a Windows
+Service and deploys `GRPCRemote.exe` as the user-session worker it supervises.
 
 Build from the solution root:
 
@@ -8,8 +9,9 @@ Build from the solution root:
 dotnet build "GRPCRemoteInstaller\GRPCRemoteInstaller.wixproj" -c Release
 ```
 
-The installer build publishes `GRPCRemote` as a self-contained `win-x64` app,
-generates WiX authoring for the published files, and produces an MSI.
+The installer build publishes both `GRPCRemoteService` and `GRPCRemote` as
+self-contained `win-x64` apps, generates WiX authoring for the published
+files, and produces an MSI.
 
 Output:
 

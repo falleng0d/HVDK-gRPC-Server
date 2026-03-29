@@ -5,7 +5,7 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$OutputPath,
 
-    [string]$ExcludeFile = ""
+    [string[]]$ExcludeFiles = @()
 )
 
 $ErrorActionPreference = "Stop"
@@ -113,16 +113,18 @@ if (-not (Test-Path -LiteralPath $publishDir)) {
 
 $root = New-DirectoryNode -Name "" -RelativePath ""
 $componentIds = New-Object System.Collections.Generic.List[string]
+$excludedSet = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::OrdinalIgnoreCase)
+foreach ($item in $ExcludeFiles) {
+    if (-not [string]::IsNullOrWhiteSpace($item)) {
+        [void]$excludedSet.Add($item)
+    }
+}
 
 $files = Get-ChildItem -LiteralPath $publishDir -File -Recurse |
     Sort-Object FullName |
     Where-Object {
-        if ([string]::IsNullOrWhiteSpace($ExcludeFile)) {
-            return $true
-        }
-
         $relative = Get-RelativePath -BasePath $publishDir -TargetPath $_.FullName
-        return $relative -ne $ExcludeFile
+        return -not $excludedSet.Contains($relative)
     }
 
 foreach ($file in $files) {

@@ -6,12 +6,14 @@ public sealed class FileLoggerProvider : ILoggerProvider
 {
     private readonly ConcurrentDictionary<string, FileLogger> _loggers = new(StringComparer.OrdinalIgnoreCase);
     private readonly string _logDirectory;
+    private readonly string _filePrefix;
     private readonly object _writeSync = new();
     private bool _disposed;
 
-    public FileLoggerProvider(string logDirectory)
+    public FileLoggerProvider(string logDirectory, string filePrefix = "grpc-remote")
     {
         _logDirectory = logDirectory;
+        _filePrefix = filePrefix;
         Directory.CreateDirectory(_logDirectory);
     }
 
@@ -29,7 +31,7 @@ public sealed class FileLoggerProvider : ILoggerProvider
 
     private string GetCurrentLogFilePath()
     {
-        var fileName = $"grpc-remote-{DateTime.UtcNow:yyyy-MM-dd}.log";
+        var fileName = $"{_filePrefix}-{DateTime.UtcNow:yyyy-MM-dd}.log";
         return Path.Combine(_logDirectory, fileName);
     }
 

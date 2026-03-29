@@ -22,21 +22,23 @@
 
   <Fragment>
     <StandardDirectory Id="ProgramFiles64Folder">
-      <Directory Id="INSTALLFOLDER" Name="GRPCRemote" />
+      <Directory Id="INSTALLFOLDER" Name="GRPCRemote">
+        <Directory Id="WORKERFOLDER" Name="worker" />
+      </Directory>
     </StandardDirectory>
   </Fragment>
 
   <Fragment>
     <DirectoryRef Id="INSTALLFOLDER">
       <Component Id="ServiceExecutableComponent" Guid="*" Bitness="always64">
-        <File Id="ServiceExecutableFile" Source="$(var.PublishDir)\GRPCRemote.exe" KeyPath="yes" />
+        <File Id="ServiceExecutableFile" Source="$(var.ServicePublishDir)\GRPCRemoteService.exe" KeyPath="yes" />
         <firewall:FirewallException
           Id="GRPCRemoteInboundTcpProgramRule"
           Name="HVDK GRPCRemote (Inbound TCP Program)"
           File="ServiceExecutableFile"
           Protocol="tcp"
           Profile="all"
-          Description="Allow inbound TCP traffic for the installed GRPCRemote service executable."
+          Description="Allow inbound TCP traffic for the installed GRPCRemote service watchdog executable."
           Outbound="no" />
         <firewall:FirewallException
           Id="GRPCRemoteOutboundTcpProgramRule"
@@ -44,7 +46,7 @@
           File="ServiceExecutableFile"
           Protocol="tcp"
           Profile="all"
-          Description="Allow outbound TCP traffic for the installed GRPCRemote service executable."
+          Description="Allow outbound TCP traffic for the installed GRPCRemote service watchdog executable."
           Outbound="yes" />
         <firewall:FirewallException
           Id="GRPCRemoteInboundUdpProgramRule"
@@ -52,7 +54,7 @@
           File="ServiceExecutableFile"
           Protocol="udp"
           Profile="all"
-          Description="Allow inbound UDP traffic for the installed GRPCRemote service executable."
+          Description="Allow inbound UDP traffic for the installed GRPCRemote service watchdog executable."
           Outbound="no" />
         <firewall:FirewallException
           Id="GRPCRemoteOutboundUdpProgramRule"
@@ -60,7 +62,7 @@
           File="ServiceExecutableFile"
           Protocol="udp"
           Profile="all"
-          Description="Allow outbound UDP traffic for the installed GRPCRemote service executable."
+          Description="Allow outbound UDP traffic for the installed GRPCRemote service watchdog executable."
           Outbound="yes" />
         <firewall:FirewallException
           Id="GRPCRemoteInboundTcpPortRule"
@@ -97,13 +99,12 @@
         <ServiceInstall
           Id="GRPCRemoteServiceInstall"
           Name="GRPCRemote"
-          DisplayName="HVDK gRPC Remote Input Server"
-          Description="Exposes HVDK virtual HID driver input over gRPC on port 9036."
+          DisplayName="HVDK gRPC Remote Session Service"
+          Description="Launches and supervises the GRPCRemote worker in the active interactive console session."
           Type="ownProcess"
           Start="auto"
           ErrorControl="normal"
-          Vital="yes"
-          Arguments="--urls http://0.0.0.0:9036">
+          Vital="yes">
           <util:ServiceConfig
             FirstFailureActionType="restart"
             SecondFailureActionType="restart"
