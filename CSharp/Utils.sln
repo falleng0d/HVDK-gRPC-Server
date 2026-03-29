@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GRPCRemote", "GRPCRemote\GR
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GRPCRemote.Tests", "GRPCRemote.Tests\GRPCRemote.Tests.csproj", "{048B63D5-C483-4AAE-A30A-63F49E521C83}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GRPCRemoteClient", "GRPCRemoteClient\GRPCRemoteClient.csproj", "{0BEBF7CB-EE8C-4C57-9D3C-C5FB796F994E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -125,6 +127,18 @@ Global
 		{048B63D5-C483-4AAE-A30A-63F49E521C83}.Release|x64.Build.0 = Release|Any CPU
 		{048B63D5-C483-4AAE-A30A-63F49E521C83}.Release|x86.ActiveCfg = Release|Any CPU
 		{048B63D5-C483-4AAE-A30A-63F49E521C83}.Release|x86.Build.0 = Release|Any CPU
+		{0BEBF7CB-EE8C-4C57-9D3C-C5FB796F994E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0BEBF7CB-EE8C-4C57-9D3C-C5FB796F994E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0BEBF7CB-EE8C-4C57-9D3C-C5FB796F994E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0BEBF7CB-EE8C-4C57-9D3C-C5FB796F994E}.Debug|x64.Build.0 = Debug|Any CPU
+		{0BEBF7CB-EE8C-4C57-9D3C-C5FB796F994E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0BEBF7CB-EE8C-4C57-9D3C-C5FB796F994E}.Debug|x86.Build.0 = Debug|Any CPU
+		{0BEBF7CB-EE8C-4C57-9D3C-C5FB796F994E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0BEBF7CB-EE8C-4C57-9D3C-C5FB796F994E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0BEBF7CB-EE8C-4C57-9D3C-C5FB796F994E}.Release|x64.ActiveCfg = Release|Any CPU
+		{0BEBF7CB-EE8C-4C57-9D3C-C5FB796F994E}.Release|x64.Build.0 = Release|Any CPU
+		{0BEBF7CB-EE8C-4C57-9D3C-C5FB796F994E}.Release|x86.ActiveCfg = Release|Any CPU
+		{0BEBF7CB-EE8C-4C57-9D3C-C5FB796F994E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
