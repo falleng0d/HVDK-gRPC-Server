@@ -97,6 +97,7 @@ Service named `GRPCRemote`.
 - The service starts automatically at boot
 - The service runs `GRPCRemote.exe --urls http://0.0.0.0:9036`
 - Windows Service recovery is configured to restart it if it exits unexpectedly
+- Windows Firewall rules are created for inbound and outbound TCP/UDP traffic for `GRPCRemote.exe` and port `9036`
 - Service logs are written under the install directory in `logs\`
 
 Install silently:
