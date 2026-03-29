@@ -279,7 +279,7 @@ internal static class GrpcRemoteClientProgram
     {
         Console.WriteLine("GRPCRemoteClient");
         Console.WriteLine("Usage:");
-        Console.WriteLine("  GRPCRemoteClient [--url http://127.0.0.1:5039] <commands>");
+        Console.WriteLine("  GRPCRemoteClient [--url http://127.0.0.1:9036] <commands>");
         Console.WriteLine();
         Console.WriteLine("Commands run left-to-right.");
         Console.WriteLine("  --ping");
