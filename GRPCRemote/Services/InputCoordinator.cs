@@ -180,6 +180,7 @@ public sealed class InputCoordinator
 
         await _transport.SendKeyboardAsync(keyboardReport, cancellationToken);
         await _transport.SendRelativeMouseAsync(mouseReport, cancellationToken);
+        await _virtualKeyService.ReleaseAllAsync();
     }
 
     private async Task ApplyKeyStateAsync(RemoteKey key, RemoteActionType action, CancellationToken cancellationToken)

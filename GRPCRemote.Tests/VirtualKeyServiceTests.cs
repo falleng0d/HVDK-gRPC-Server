@@ -1,12 +1,13 @@
 using GRPCRemote.Input;
 using GRPCRemote.Services;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace GRPCRemote.Tests;
 
 public sealed class VirtualKeyServiceTests
 {
     [Fact]
-    public async Task Media_keys_are_not_supported_by_hvdK()
+    public void Media_keys_are_not_supported_by_hvdK()
     {
         Assert.True(RemoteKeyMap.IsMediaKey(RemoteKey.KeyMediaPlayPause));
         Assert.True(RemoteKeyMap.IsMediaKey(RemoteKey.KeyMediaStop));
@@ -38,7 +39,7 @@ public sealed class VirtualKeyServiceTests
     [Fact]
     public async Task Send_media_key_press_does_not_throw()
     {
-        var service = new VirtualKeyService();
+        var service = new VirtualKeyService(NullLogger<VirtualKeyService>.Instance);
 
         await service.SendMediaKeyAsync(RemoteKey.KeyVolumeUp, RemoteActionType.Press, CancellationToken.None);
     }
@@ -46,7 +47,7 @@ public sealed class VirtualKeyServiceTests
     [Fact]
     public async Task Send_media_key_down_and_up_does_not_throw()
     {
-        var service = new VirtualKeyService();
+        var service = new VirtualKeyService(NullLogger<VirtualKeyService>.Instance);
 
         await service.SendMediaKeyAsync(RemoteKey.KeyVolumeMute, RemoteActionType.Down, CancellationToken.None);
         await Task.Delay(50);
@@ -66,8 +67,95 @@ public sealed class VirtualKeyServiceTests
     [InlineData(RemoteKey.KeyBrowserRefresh)]
     public async Task All_media_keys_can_be_sent(RemoteKey key)
     {
-        var service = new VirtualKeyService();
+        var service = new VirtualKeyService(NullLogger<VirtualKeyService>.Instance);
 
         await service.SendMediaKeyAsync(key, RemoteActionType.Press, CancellationToken.None);
+    }
+
+    [Fact]
+    public async Task Holding_volume_up_repeats_until_released()
+    {
+        var events = new List<(ushort VkCode, uint Flags, DateTime Timestamp)>();
+        var service = new VirtualKeyService(
+            NullLogger<VirtualKeyService>.Instance,
+            (vkCode, flags) =>
+            {
+                lock (events)
+                {
+                    events.Add((vkCode, flags, DateTime.UtcNow));
+                }
+            });
+
+        await service.SendMediaKeyAsync(RemoteKey.KeyVolumeUp, RemoteActionType.Down, CancellationToken.None);
+        await Task.Delay(420);
+
+        List<(ushort VkCode, uint Flags, DateTime Timestamp)> beforeRelease;
+        lock (events)
+        {
+            beforeRelease = events.ToList();
+        }
+
+        await service.SendMediaKeyAsync(RemoteKey.KeyVolumeUp, RemoteActionType.Up, CancellationToken.None);
+        await Task.Delay(160);
+
+        List<(ushort VkCode, uint Flags, DateTime Timestamp)> afterRelease;
+        lock (events)
+        {
+            afterRelease = events.ToList();
+        }
+
+        Assert.True(beforeRelease.Count >= 4, $"Expected repeated events before release, got {beforeRelease.Count}.");
+        Assert.Equal(beforeRelease.Count, afterRelease.Count);
+        Assert.All(afterRelease, e => Assert.Equal((ushort)0xAF, e.VkCode));
+        Assert.Equal(0u, afterRelease[0].Flags);
+        Assert.Equal(0x0002u, afterRelease[1].Flags);
+    }
+
+    [Fact]
+    public async Task Releasing_held_volume_key_stops_future_repeat_events()
+    {
+        var events = new List<(ushort VkCode, uint Flags, DateTime Timestamp)>();
+        var service = new VirtualKeyService(
+            NullLogger<VirtualKeyService>.Instance,
+            (vkCode, flags) =>
+            {
+                lock (events)
+                {
+                    events.Add((vkCode, flags, DateTime.UtcNow));
+                }
+            });
+
+        await service.SendMediaKeyAsync(RemoteKey.KeyVolumeDown, RemoteActionType.Down, CancellationToken.None);
+        await Task.Delay(140);
+        await service.SendMediaKeyAsync(RemoteKey.KeyVolumeDown, RemoteActionType.Up, CancellationToken.None);
+
+        List<(ushort VkCode, uint Flags, DateTime Timestamp)> atRelease;
+        lock (events)
+        {
+            atRelease = events.ToList();
+        }
+
+        await Task.Delay(220);
+
+        List<(ushort VkCode, uint Flags, DateTime Timestamp)> finalEvents;
+        lock (events)
+        {
+            finalEvents = events.ToList();
+        }
+
+        Assert.Equal(atRelease.Count, finalEvents.Count);
+        Assert.Equal(2, finalEvents.Count);
+        Assert.Collection(
+            finalEvents,
+            first =>
+            {
+                Assert.Equal((ushort)0xAE, first.VkCode);
+                Assert.Equal(0u, first.Flags);
+            },
+            second =>
+            {
+                Assert.Equal((ushort)0xAE, second.VkCode);
+                Assert.Equal(0x0002u, second.Flags);
+            });
     }
 }
