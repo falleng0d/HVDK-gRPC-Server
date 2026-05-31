@@ -45,7 +45,7 @@ public sealed class InputCoordinator
             return;
         }
 
-        if (!RemoteKeyMap.IsModifier(key) && action == RemoteActionType.Down)
+        if (RemoteKeyMap.IsModifier(key) && action == RemoteActionType.Down)
         {
             await CancelPendingModifiersAndReleaseAsync(cancellationToken);
         }
@@ -62,7 +62,7 @@ public sealed class InputCoordinator
                 _modifierReleaseCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 try
                 {
-                    await Task.Delay(100, _modifierReleaseCts.Token);
+                    await Task.Delay(200, _modifierReleaseCts.Token);
                 }
                 catch (TaskCanceledException)
                 {

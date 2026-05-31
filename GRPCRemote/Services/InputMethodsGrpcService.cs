@@ -14,6 +14,8 @@ public sealed class InputMethodsGrpcService(
     {
         try
         {
+            logger.LogDebug("Pressing key {Key} with type {Type}", request.Id, request.Type);
+            
             await inputCoordinator.PressKeyAsync(
                 RemoteKeyMap.FromId(request.Id),
                 (RemoteActionType)request.Type,
