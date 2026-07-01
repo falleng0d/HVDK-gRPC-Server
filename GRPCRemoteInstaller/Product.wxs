@@ -6,7 +6,7 @@
   <Package
     Name="HVDK GRPCRemote"
     Manufacturer="matj.dev &lt;mateus@matj.dev&gt;"
-    Version="1.0.0"
+    Version="$(var.ProductVersion)"
     UpgradeCode="E4A56297-EC74-47BF-9C65-82A2DC1C9C7A"
     Scope="perMachine">
 

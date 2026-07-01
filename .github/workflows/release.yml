@@ -44,8 +44,11 @@ jobs:
       - name: Restore
         run: dotnet restore GRPCRemoteInstaller/GRPCRemoteInstaller.wixproj
 
+      - name: Set installer version
+        run: "Add-Content -Path $env:GITHUB_ENV -Value ('PRODUCT_VERSION=' + $env:GITHUB_REF_NAME.TrimStart('v'))"
+
       - name: Build
-        run: dotnet build GRPCRemoteInstaller/GRPCRemoteInstaller.wixproj -c Release --no-restore
+        run: dotnet build GRPCRemoteInstaller/GRPCRemoteInstaller.wixproj -c Release -p:ProductVersion=${{ env.PRODUCT_VERSION }} --no-restore
 
       - name: Create Release
         uses: softprops/action-gh-release@v2

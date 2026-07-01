@@ -4,11 +4,12 @@
     <OutputType>Package</OutputType>
     <Platform>x64</Platform>
     <Cultures>en-US</Cultures>
+    <ProductVersion Condition="'$(ProductVersion)' == ''">1.0.0</ProductVersion>
     <PublishDir>$(MSBuildProjectDirectory)\bin\$(Configuration)\publish</PublishDir>
     <ServicePublishDir>$(PublishDir)</ServicePublishDir>
     <WorkerPublishDir>$(PublishDir)\worker</WorkerPublishDir>
     <GeneratedWxs>$(MSBuildProjectDirectory)\obj\$(Configuration)\GeneratedPublishedFiles.wxs</GeneratedWxs>
-    <DefineConstants>$(DefineConstants);PublishDir=$(PublishDir);ServicePublishDir=$(ServicePublishDir);WorkerPublishDir=$(WorkerPublishDir)</DefineConstants>
+    <DefineConstants>$(DefineConstants);ProductVersion=$(ProductVersion);PublishDir=$(PublishDir);ServicePublishDir=$(ServicePublishDir);WorkerPublishDir=$(WorkerPublishDir)</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
