@@ -135,3 +135,9 @@ Use the `ide` CLI for diagnostics and linting:
 - Without drivers, the server runs but cannot inject input
 - The `RecordingInputTransport` is used in tests to verify events without hardware
 - A delay was added in `InputCoordinator.cs` to prevent commands being sent too fast (causes commands to not be executed by the driver)
+
+## Release Install
+
+1. `gh release download $(gh release list --limit 1 --json tagName --jq '.[0].tagName') --pattern "*.msi" --dir "$env:TEMP\hvdk-release" --clobber`
+2. `scp "$env:TEMP\hvdk-release\GRPCRemoteInstaller.msi" qud:"C:/Users/falleng0d/AppData/Local/Temp/GRPCRemoteInstaller.msi"`
+3. `msiexec /i "$env:TEMP\hvdk-release\GRPCRemoteInstaller.msi" /qn /norestart /L*v "$env:TEMP\GRPCRemoteInstaller.log"; ssh qud 'msiexec /i "C:\Users\falleng0d\AppData\Local\Temp\GRPCRemoteInstaller.msi" /qn /norestart /L*v "C:\Users\falleng0d\AppData\Local\Temp\GRPCRemoteInstaller.log"'`
