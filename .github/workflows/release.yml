@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   test:
     name: Test
@@ -39,18 +42,15 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Restore
-        run: dotnet restore GRPCRemote/GRPCRemote.csproj
+        run: dotnet restore GRPCRemoteInstaller/GRPCRemoteInstaller.wixproj
 
       - name: Build
-        run: dotnet build GRPCRemote/GRPCRemote.csproj -c Release --no-restore
-
-      - name: Publish
-        run: dotnet publish GRPCRemote/GRPCRemote.csproj -c Release -o ./publish --no-restore
+        run: dotnet build GRPCRemoteInstaller/GRPCRemoteInstaller.wixproj -c Release --no-restore
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ./publish/*
+          files: GRPCRemoteInstaller/bin/x64/Release/*.msi
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
