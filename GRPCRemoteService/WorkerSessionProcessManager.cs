@@ -116,9 +116,46 @@ public sealed class WorkerSessionProcessManager(ILogger<WorkerSessionProcessMana
         using var processHandle = new SafeWaitHandle(processInformation.hProcess, ownsHandle: true);
         using var threadHandle = new SafeWaitHandle(processInformation.hThread, ownsHandle: true);
         var process = Process.GetProcessById(processInformation.dwProcessId);
+        process.EnableRaisingEvents = true;
+        process.Exited += WorkerExited;
 
         logger.LogInformation("Started GRPCRemote worker process {ProcessId} in session {SessionId}", process.Id, sessionId);
         return new ManagedWorkerProcess(sessionId, process);
+    }
+
+    private void WorkerExited(object? sender, EventArgs args)
+    {
+        if (sender is not Process process)
+        {
+            return;
+        }
+
+        lock (_sync)
+        {
+            if (_current is null || _current.ProcessId != process.Id)
+            {
+                return;
+            }
+
+            logger.LogWarning("GRPCRemote worker process {ProcessId} exited in session {SessionId} with exit code {ExitCode}", _current.ProcessId, _current.SessionId, _current.ExitCode);
+            _current.Dispose();
+            _current = null;
+            _lastLaunchAttemptUtc = DateTimeOffset.MinValue;
+        }
+
+        _ = RestartAfterExitAsync();
+    }
+
+    private async Task RestartAfterExitAsync()
+    {
+        try
+        {
+            await ReconcileAsync(CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to restart GRPCRemote worker after exit");
+        }
     }
 
     private void KillStaleWorkers(string workerPath, uint activeSessionId)
