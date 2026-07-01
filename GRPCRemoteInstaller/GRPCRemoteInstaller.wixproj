@@ -1,0 +1,34 @@
+<Project Sdk="WixToolset.Sdk/6.0.2">
+
+  <PropertyGroup>
+    <OutputType>Package</OutputType>
+    <Platform>x64</Platform>
+    <Cultures>en-US</Cultures>
+    <PublishDir>$(MSBuildProjectDirectory)\bin\$(Configuration)\publish</PublishDir>
+    <ServicePublishDir>$(PublishDir)</ServicePublishDir>
+    <WorkerPublishDir>$(PublishDir)\worker</WorkerPublishDir>
+    <GeneratedWxs>$(MSBuildProjectDirectory)\obj\$(Configuration)\GeneratedPublishedFiles.wxs</GeneratedWxs>
+    <DefineConstants>$(DefineConstants);PublishDir=$(PublishDir);ServicePublishDir=$(ServicePublishDir);WorkerPublishDir=$(WorkerPublishDir)</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.Firewall.wixext" Version="6.0.2" />
+    <PackageReference Include="WixToolset.Util.wixext" Version="6.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(GeneratedWxs)" />
+  </ItemGroup>
+
+  <Target Name="PublishGrpcRemote" BeforeTargets="BeforeBuild">
+    <RemoveDir Directories="$(PublishDir)" ContinueOnError="true" />
+    <MakeDir Directories="$(ServicePublishDir);$(WorkerPublishDir)" />
+    <Exec Command='dotnet publish "$(MSBuildProjectDirectory)\..\GRPCRemoteService\GRPCRemoteService.csproj" -c $(Configuration) -r win-x64 --self-contained true -o "$(ServicePublishDir)"' />
+    <Exec Command='dotnet publish "$(MSBuildProjectDirectory)\..\GRPCRemote\GRPCRemote.csproj" -c $(Configuration) -r win-x64 --self-contained true -o "$(WorkerPublishDir)"' />
+  </Target>
+
+  <Target Name="GeneratePublishedFilesAuthoring" BeforeTargets="BeforeBuild" DependsOnTargets="PublishGrpcRemote">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;&amp; { &amp; '$(MSBuildProjectDirectory)\GeneratePublishedFiles.ps1' -PublishDir '$(PublishDir)' -OutputPath '$(GeneratedWxs)' -ExcludeFiles @('GRPCRemoteService.exe') }&quot;" />
+  </Target>
+
+</Project>

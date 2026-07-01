@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util"
+     xmlns:firewall="http://wixtoolset.org/schemas/v4/wxs/firewall">
+
+  <Package
+    Name="HVDK GRPCRemote"
+    Manufacturer="matj.dev &lt;mateus@matj.dev&gt;"
+    Version="1.0.0"
+    UpgradeCode="E4A56297-EC74-47BF-9C65-82A2DC1C9C7A"
+    Scope="perMachine">
+
+    <SummaryInformation Description="Installs the HVDK gRPC Remote Windows Service." />
+    <MajorUpgrade DowngradeErrorMessage="A newer version of HVDK GRPCRemote is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Feature Id="MainFeature" Title="HVDK GRPCRemote Service" Level="1">
+      <ComponentRef Id="ServiceExecutableComponent" />
+      <ComponentGroupRef Id="PublishedFiles" />
+    </Feature>
+  </Package>
+
+  <Fragment>
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="GRPCRemote">
+        <Directory Id="WORKERFOLDER" Name="worker" />
+      </Directory>
+    </StandardDirectory>
+  </Fragment>
+
+  <Fragment>
+    <DirectoryRef Id="INSTALLFOLDER">
+      <Component Id="ServiceExecutableComponent" Guid="*" Bitness="always64">
+        <File Id="ServiceExecutableFile" Source="$(var.ServicePublishDir)\GRPCRemoteService.exe" KeyPath="yes" />
+        <firewall:FirewallException
+          Id="GRPCRemoteInboundTcpProgramRule"
+          Name="HVDK GRPCRemote (Inbound TCP Program)"
+          File="ServiceExecutableFile"
+          Protocol="tcp"
+          Profile="all"
+          Description="Allow inbound TCP traffic for the installed GRPCRemote service watchdog executable."
+          Outbound="no" />
+        <firewall:FirewallException
+          Id="GRPCRemoteOutboundTcpProgramRule"
+          Name="HVDK GRPCRemote (Outbound TCP Program)"
+          File="ServiceExecutableFile"
+          Protocol="tcp"
+          Profile="all"
+          Description="Allow outbound TCP traffic for the installed GRPCRemote service watchdog executable."
+          Outbound="yes" />
+        <firewall:FirewallException
+          Id="GRPCRemoteInboundUdpProgramRule"
+          Name="HVDK GRPCRemote (Inbound UDP Program)"
+          File="ServiceExecutableFile"
+          Protocol="udp"
+          Profile="all"
+          Description="Allow inbound UDP traffic for the installed GRPCRemote service watchdog executable."
+          Outbound="no" />
+        <firewall:FirewallException
+          Id="GRPCRemoteOutboundUdpProgramRule"
+          Name="HVDK GRPCRemote (Outbound UDP Program)"
+          File="ServiceExecutableFile"
+          Protocol="udp"
+          Profile="all"
+          Description="Allow outbound UDP traffic for the installed GRPCRemote service watchdog executable."
+          Outbound="yes" />
+        <firewall:FirewallException
+          Id="GRPCRemoteInboundTcpPortRule"
+          Name="HVDK GRPCRemote Port 9036 (Inbound TCP)"
+          Port="9036"
+          Protocol="tcp"
+          Profile="all"
+          Description="Allow inbound TCP traffic on port 9036 for the GRPCRemote gRPC endpoint."
+          Outbound="no" />
+        <firewall:FirewallException
+          Id="GRPCRemoteOutboundTcpPortRule"
+          Name="HVDK GRPCRemote Port 9036 (Outbound TCP)"
+          Port="9036"
+          Protocol="tcp"
+          Profile="all"
+          Description="Allow outbound TCP traffic on port 9036 for the GRPCRemote gRPC endpoint."
+          Outbound="yes" />
+        <firewall:FirewallException
+          Id="GRPCRemoteInboundUdpPortRule"
+          Name="HVDK GRPCRemote Port 9036 (Inbound UDP)"
+          Port="9036"
+          Protocol="udp"
+          Profile="all"
+          Description="Allow inbound UDP traffic on port 9036 for the installed GRPCRemote executable."
+          Outbound="no" />
+        <firewall:FirewallException
+          Id="GRPCRemoteOutboundUdpPortRule"
+          Name="HVDK GRPCRemote Port 9036 (Outbound UDP)"
+          Port="9036"
+          Protocol="udp"
+          Profile="all"
+          Description="Allow outbound UDP traffic on port 9036 for the installed GRPCRemote executable."
+          Outbound="yes" />
+        <ServiceInstall
+          Id="GRPCRemoteServiceInstall"
+          Name="GRPCRemote"
+          DisplayName="HVDK gRPC Remote Session Service"
+          Description="Launches and supervises the GRPCRemote worker in the active interactive console session."
+          Type="ownProcess"
+          Start="auto"
+          ErrorControl="normal"
+          Vital="yes">
+          <util:ServiceConfig
+            FirstFailureActionType="restart"
+            SecondFailureActionType="restart"
+            ThirdFailureActionType="restart"
+            RestartServiceDelayInSeconds="30"
+            ResetPeriodInDays="1" />
+        </ServiceInstall>
+        <ServiceControl
+          Id="GRPCRemoteServiceControl"
+          Name="GRPCRemote"
+          Start="install"
+          Stop="both"
+          Remove="uninstall"
+          Wait="yes" />
+      </Component>
+    </DirectoryRef>
+  </Fragment>
+</Wix>

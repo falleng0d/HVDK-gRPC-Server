@@ -15,6 +15,8 @@ public sealed class InputCoordinator
     private readonly byte[] _pressedKeys = new byte[6];
     private byte _modifierState;
     private byte _mouseButtons;
+    private CancellationTokenSource? _modifierReleaseCts;
+    private readonly List<(RemoteKey Key, RemoteActionType Action)> _pendingModifiers = [];
 
     public InputCoordinator(
         ConfigService configService,
@@ -43,15 +45,49 @@ public sealed class InputCoordinator
             return;
         }
 
-        if (action == RemoteActionType.Press)
+        if (RemoteKeyMap.IsModifier(key) && action == RemoteActionType.Down)
         {
-            await ApplyKeyStateAsync(key, RemoteActionType.Down, cancellationToken);
-            await Task.Delay(_configService.Snapshot.KeyPressInterval, cancellationToken);
-            await ApplyKeyStateAsync(key, RemoteActionType.Up, cancellationToken);
-            return;
+            await CancelPendingModifiersAndReleaseAsync(cancellationToken);
+        }
+
+        switch (action)
+        {
+            case RemoteActionType.Press:
+                await ApplyKeyStateAsync(key, RemoteActionType.Down, cancellationToken);
+                await Task.Delay(_configService.Snapshot.KeyPressInterval, cancellationToken);
+                await ApplyKeyStateAsync(key, RemoteActionType.Up, cancellationToken);
+                return;
+            case RemoteActionType.Up when RemoteKeyMap.IsModifier(key):
+                _pendingModifiers.Add((key, action));
+                _modifierReleaseCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                try
+                {
+                    await Task.Delay(200, _modifierReleaseCts.Token);
+                }
+                catch (TaskCanceledException)
+                {
+                    _logger.LogDebug("Modifier release delayed cancelled for {Key}", key);
+                    return;
+                }
+                _pendingModifiers.Clear();
+                break;
         }
 
         await ApplyKeyStateAsync(key, action, cancellationToken);
+    }
+
+    private async Task CancelPendingModifiersAndReleaseAsync(CancellationToken cancellationToken)
+    {
+        if (_pendingModifiers.Count > 0)
+        {
+            _logger.LogDebug("Cancelling pending modifier releases for {Count} modifiers and releasing immediately", _pendingModifiers.Count);
+            await _modifierReleaseCts?.CancelAsync()!;
+            foreach (var (key, _) in _pendingModifiers)
+            {
+                await ApplyKeyStateAsync(key, RemoteActionType.Up, cancellationToken);
+            }
+            _pendingModifiers.Clear();
+        }
     }
 
     private async Task SendMediaKeyAsync(RemoteKey key, RemoteActionType action, CancellationToken cancellationToken)
@@ -78,9 +114,12 @@ public sealed class InputCoordinator
 
         foreach (var step in HotkeyParser.Parse(hotkey))
         {
-            await Task.Delay(step.WaitMilliseconds.GetValueOrDefault(_configService.Snapshot.KeyPressInterval), cancellationToken);
-
+            var delay = step.WaitMilliseconds ?? options.Speed ??
+                _configService.Snapshot.KeyPressInterval;
+            
             await ApplyKeyStateAsync(step.Key, step.Action, cancellationToken);
+            _logger.LogDebug("Sent hotkey step {Key} {Action} with delay {Delay}", step.Key, step.Action, delay);
+            await Task.Delay(delay, cancellationToken);
         }
     }
 
@@ -141,6 +180,7 @@ public sealed class InputCoordinator
 
         await _transport.SendKeyboardAsync(keyboardReport, cancellationToken);
         await _transport.SendRelativeMouseAsync(mouseReport, cancellationToken);
+        await _virtualKeyService.ReleaseAllAsync();
     }
 
     private async Task ApplyKeyStateAsync(RemoteKey key, RemoteActionType action, CancellationToken cancellationToken)

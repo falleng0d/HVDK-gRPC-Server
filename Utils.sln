@@ -1,4 +1,4 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30204.135
@@ -10,6 +10,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GRPCRemote.Tests", "GRPCRemote.Tests\GRPCRemote.Tests.csproj", "{048B63D5-C483-4AAE-A30A-63F49E521C83}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GRPCRemoteClient", "GRPCRemoteClient\GRPCRemoteClient.csproj", "{0BEBF7CB-EE8C-4C57-9D3C-C5FB796F994E}"
+EndProject
+Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "GRPCRemoteInstaller", "GRPCRemoteInstaller\GRPCRemoteInstaller.wixproj", "{CFB24720-12DD-4050-990A-00E08D33BAA9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GRPCRemoteService", "GRPCRemoteService\GRPCRemoteService.csproj", "{59BB6ABD-D815-4D45-AC49-4696F177E30F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -69,6 +73,24 @@ Global
 		{0BEBF7CB-EE8C-4C57-9D3C-C5FB796F994E}.Release|x64.Build.0 = Release|Any CPU
 		{0BEBF7CB-EE8C-4C57-9D3C-C5FB796F994E}.Release|x86.ActiveCfg = Release|Any CPU
 		{0BEBF7CB-EE8C-4C57-9D3C-C5FB796F994E}.Release|x86.Build.0 = Release|Any CPU
+		{CFB24720-12DD-4050-990A-00E08D33BAA9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CFB24720-12DD-4050-990A-00E08D33BAA9}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CFB24720-12DD-4050-990A-00E08D33BAA9}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CFB24720-12DD-4050-990A-00E08D33BAA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CFB24720-12DD-4050-990A-00E08D33BAA9}.Release|x64.ActiveCfg = Release|Any CPU
+		{CFB24720-12DD-4050-990A-00E08D33BAA9}.Release|x86.ActiveCfg = Release|Any CPU
+		{59BB6ABD-D815-4D45-AC49-4696F177E30F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59BB6ABD-D815-4D45-AC49-4696F177E30F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59BB6ABD-D815-4D45-AC49-4696F177E30F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{59BB6ABD-D815-4D45-AC49-4696F177E30F}.Debug|x64.Build.0 = Debug|Any CPU
+		{59BB6ABD-D815-4D45-AC49-4696F177E30F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{59BB6ABD-D815-4D45-AC49-4696F177E30F}.Debug|x86.Build.0 = Debug|Any CPU
+		{59BB6ABD-D815-4D45-AC49-4696F177E30F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59BB6ABD-D815-4D45-AC49-4696F177E30F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59BB6ABD-D815-4D45-AC49-4696F177E30F}.Release|x64.ActiveCfg = Release|Any CPU
+		{59BB6ABD-D815-4D45-AC49-4696F177E30F}.Release|x64.Build.0 = Release|Any CPU
+		{59BB6ABD-D815-4D45-AC49-4696F177E30F}.Release|x86.ActiveCfg = Release|Any CPU
+		{59BB6ABD-D815-4D45-AC49-4696F177E30F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

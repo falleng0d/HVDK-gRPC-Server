@@ -1,11 +1,21 @@
 using GRPCRemote.Configuration;
 using GRPCRemote.Drivers;
+using GRPCRemote.Logging;
 using GRPCRemote.Services;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
-var logger = LoggerFactory.Create(loggingBuilder => loggingBuilder.AddConsole()).CreateLogger<Program>();
+
+var logsDirectory = AppPaths.GetLogsDirectory();
+builder.Logging.AddProvider(new FileLoggerProvider(logsDirectory, "grpc-remote-worker"));
+
+using var bootstrapLoggerFactory = LoggerFactory.Create(loggingBuilder =>
+{
+    loggingBuilder.AddConsole();
+    loggingBuilder.AddProvider(new FileLoggerProvider(logsDirectory, "grpc-remote-worker"));
+});
+var logger = bootstrapLoggerFactory.CreateLogger<Program>();
 
 builder.WebHost.ConfigureKestrel(options =>
 {
@@ -34,6 +44,8 @@ builder.Services.AddSingleton<InputCoordinator>();
 builder.Services.AddGrpc();
 
 var app = builder.Build();
+
+_ = app.Services.GetRequiredService<ConfigService>();
 
 app.MapGrpcService<InputMethodsGrpcService>();
 app.MapGet("/", () => "Use a gRPC client to communicate with the remote input endpoints.");

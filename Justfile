@@ -6,6 +6,14 @@ build:
 build-grpcremote:
     dotnet build GRPCRemote/GRPCRemote.csproj -c Release
 
+# Build the GRPCRemote watchdog service in Release mode
+build-grpcremote-service:
+    dotnet build GRPCRemoteService/GRPCRemoteService.csproj -c Release
+
+# Build the Windows service installer MSI
+build-installer: build-release
+    dotnet build GRPCRemoteInstaller/GRPCRemoteInstaller.wixproj -c Release
+
 # Build in Release mode
 build-release:
     dotnet build Utils.sln -c Release

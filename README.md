@@ -58,6 +58,9 @@ just build-release
 
 # Build GRPCRemote only
 just build-grpcremote
+
+# Build the Windows service installer MSI
+dotnet build "GRPCRemoteInstaller\GRPCRemoteInstaller.wixproj" -c Release
 ```
 
 ## Testing
@@ -78,6 +81,33 @@ just test-grpcremote-integration
 Start the server:
 ```powershell
 dotnet run --project GRPCRemote/GRPCRemote.csproj
+```
+
+Run the published binary directly:
+
+```powershell
+.\GRPCRemote\bin\Release\net8.0\GRPCRemote.exe --urls http://0.0.0.0:9036
+```
+
+## Windows Service Installer
+
+`GRPCRemoteInstaller` builds an MSI that installs a watchdog Windows Service
+named `GRPCRemote`, which launches `GRPCRemote.exe` in the active interactive
+console session.
+
+- The service starts automatically at boot
+- The service launches the worker with `--urls http://0.0.0.0:9036`
+- The active console session owns the worker process
+- Windows Service recovery is configured to restart it if it exits unexpectedly
+- Windows Firewall rules are created for inbound and outbound TCP/UDP traffic for the installed service executable and port `9036`
+- Roaming config is stored under `%AppData%\GRPCRemote\grpc-remote.config.json`
+- Local logs are stored under `%LocalAppData%\GRPCRemote\logs\`
+- Recording-mode output defaults to `%LocalAppData%\GRPCRemote\grpc-remote.events.jsonl`
+
+Install silently:
+
+```powershell
+msiexec /i "GRPCRemoteInstaller\bin\Release\GRPCRemoteInstaller.msi" /quiet
 ```
 
 Use the client:

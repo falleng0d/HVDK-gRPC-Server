@@ -18,7 +18,7 @@ public sealed class ConfigService
     public ConfigService(RemoteHostOptions options, ILogger<ConfigService> logger)
     {
         _logger = logger;
-        _configPath = Path.GetFullPath(options.ConfigPath);
+        _configPath = AppPaths.ResolveConfigPath(options.ConfigPath);
 
         var directory = Path.GetDirectoryName(_configPath);
         if (!string.IsNullOrEmpty(directory))

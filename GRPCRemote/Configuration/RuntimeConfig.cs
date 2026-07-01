@@ -6,5 +6,5 @@ public sealed class RuntimeConfig
 
     public float CursorAcceleration { get; set; } = 1.0f;
 
-    public int KeyPressInterval { get; set; } = 33;
+    public int KeyPressInterval { get; set; } = 15;
 }
