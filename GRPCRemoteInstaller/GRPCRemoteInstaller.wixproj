@@ -26,6 +26,7 @@
     <MakeDir Directories="$(ServicePublishDir);$(WorkerPublishDir)" />
     <Exec Command='dotnet publish "$(MSBuildProjectDirectory)\..\GRPCRemoteService\GRPCRemoteService.csproj" -c $(Configuration) -r win-x64 --self-contained true -o "$(ServicePublishDir)"' />
     <Exec Command='dotnet publish "$(MSBuildProjectDirectory)\..\GRPCRemote\GRPCRemote.csproj" -c $(Configuration) -r win-x64 --self-contained true -o "$(WorkerPublishDir)"' />
+    <Exec Command='dotnet publish "$(MSBuildProjectDirectory)\..\RemoteInputBridge\RemoteInputBridge.csproj" -c $(Configuration) -r win-x64 --self-contained true -p:PublishSingleFile=true -o "$(PublishDir)"' />
   </Target>
 
   <Target Name="GeneratePublishedFilesAuthoring" BeforeTargets="BeforeBuild" DependsOnTargets="PublishGrpcRemote">

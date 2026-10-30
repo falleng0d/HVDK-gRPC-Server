@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\GRPCRemote\GRPCRemote.csproj" />
+    <ProjectReference Include="..\RemoteInputBridge\RemoteInputBridge.csproj" Aliases="bridge" />
   </ItemGroup>
 
 </Project>

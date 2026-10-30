@@ -32,6 +32,54 @@ Key classes:
 - `GRPCRemote/Drivers/HvdkInputTransport.cs` - Sends reports to HVDK devices
 - `GRPCRemote/Input/RemoteKeyMap.cs` - Maps key names to HID codes
 
+## AutoHotkey v1 remote input
+
+The MSI installs `RemoteInputBridge.exe` and `remote_input.ahk` in
+`C:\Program Files\GRPCRemote` alongside `GRPCRemoteService.exe` (the server worker
+is in `worker`). With 64-bit AutoHotkey v1.1.28 or later, use:
+
+```autohotkey
+#Include %A_ProgramFiles%\GRPCRemote\remote_input.ahk
+
+if (!RemoteInputInitialize())
+    ExitApp
+RemoteInputDown("L")
+RemoteInputUp("L")
+RemoteInputPress("ENTER")
+```
+
+Use 64-bit AutoHotkey so `A_ProgramFiles` selects the 64-bit install directory.
+For a custom MSI install directory, use its absolute helper path in `#Include`
+without quotes. The helper locates the executable beside its own `A_LineFile`;
+`GRPC_REMOTE_INPUT_BRIDGE` overrides that executable path.
+
+Each script keeps a duplex connection to the local `GRPCRemoteInput` named pipe.
+Requests are UTF-8 `press|key`, `down|key`, or `up|key` lines; each receives `ok`
+after gRPC completion or a single-line `error <message>`. Helpers return false
+on errors and expose `RemoteInputLastError`. gRPC calls have a two-second deadline;
+the helper stops waiting after three seconds and reconnects on the next call.
+Commands are never automatically replayed after an uncertain result.
+
+One shared bridge stays running until explicitly stopped or Windows signs out.
+Scripts close only their own pipe on exit. Concurrent startup losers exit cleanly;
+connections run independently. Pipe access is limited to the same Windows user,
+including elevated and unelevated processes, and rejects network clients. Scripts
+share the server's keyboard state: callers must coordinate ownership of held keys
+and release them before exiting.
+
+The first bridge's endpoint applies to every connected script. Stop it before
+changing `GRPC_REMOTE_ENDPOINT` (default `http://127.0.0.1:9036`). CLI usage:
+
+```powershell
+& "$env:ProgramFiles\GRPCRemote\RemoteInputBridge.exe" ping
+& "$env:ProgramFiles\GRPCRemote\RemoteInputBridge.exe" press L --endpoint http://127.0.0.1:9036
+RemoteInputBridge listen [--pipe NAME] [--endpoint URL]
+```
+
+The bridge targets .NET 8, links the server's key map and proto, and is published
+as a self-contained executable by the installer. Mouse and hotkey commands remain
+available through `GRPCRemoteClient`.
+
 ## Projects
 
 | Project             | Type         | Description                                    |

@@ -9,9 +9,15 @@ Build from the solution root:
 dotnet build "GRPCRemoteInstaller\GRPCRemoteInstaller.wixproj" -c Release
 ```
 
-The installer build publishes both `GRPCRemoteService` and `GRPCRemote` as
+The installer build publishes `GRPCRemoteService`, `GRPCRemote`, and `RemoteInputBridge` as
 self-contained `win-x64` apps, generates WiX authoring for the published
 files, and produces an MSI.
+
+`RemoteInputBridge.exe` is published as a single-file app to avoid dependency
+collisions with the service. It and `remote_input.ahk` are harvested into
+`C:\Program Files\GRPCRemote` (or the selected `INSTALLFOLDER`). AutoHotkey v1.1.28+
+64-bit scripts can use `#Include %A_ProgramFiles%\GRPCRemote\remote_input.ahk`.
+See the main README for helpers, protocol, and shared bridge lifetime.
 
 At runtime:
 
@@ -22,5 +28,5 @@ At runtime:
 Output:
 
 ```powershell
-GRPCRemoteInstaller\bin\Release\GRPCRemoteInstaller.msi
+GRPCRemoteInstaller\bin\x64\Release\GRPCRemoteInstaller.msi
 ```
